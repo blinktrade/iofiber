@@ -464,28 +464,48 @@ private:
     typename basic_fiber<JoinerStrand>::this_fiber yield;
 };
 
+namespace detail {
+template<class Strand, class F>
+struct SpawnFunctor
+{
+    using impl = typename basic_fiber<Strand>::impl;
+
+    template<class F2>
+    SpawnFunctor(F2&& f, std::shared_ptr<impl> pimpl)
+        : f(std::forward<F2>(f))
+        , pimpl(std::move(pimpl))
+    {}
+
+    boost::context::fiber operator()(boost::context::fiber&& sink)
+    {
+        pimpl->coro.swap(sink);
+        try {
+            f(typename basic_fiber<Strand>::this_fiber{pimpl});
+        } catch (const fiber_interrupted&) {
+            pimpl->interruption_caught = true;
+        }
+        if (pimpl->joiner_executor) {
+            pimpl->joiner_executor();
+        }
+        return std::move(pimpl->coro);
+    }
+
+    F f;
+    std::shared_ptr<impl> pimpl;
+};
+} // namespace detail
+
 template<class Strand, class F,
          class StackAllocator = boost::context::default_stack>
 typename std::enable_if<
     detail::is_strand<Strand>::value, basic_fiber<Strand>>::type
-spawn(Strand executor, F &&f, StackAllocator salloc = StackAllocator())
+spawn(Strand executor, F&& f, StackAllocator salloc = StackAllocator())
 {
     auto pimpl = std::make_shared<typename basic_fiber<Strand>::impl>(executor);
     pimpl->coro = boost::context::fiber{
         std::allocator_arg,
         salloc,
-        [f,pimpl](boost::context::fiber &&sink) mutable {
-            pimpl->coro.swap(sink);
-            try {
-                f(typename basic_fiber<Strand>::this_fiber{pimpl});
-            } catch (const fiber_interrupted&) {
-                pimpl->interruption_caught = true;
-            }
-            if (pimpl->joiner_executor) {
-                pimpl->joiner_executor();
-            }
-            return std::move(pimpl->coro);
-        }
+        detail::SpawnFunctor<Strand, F>{std::forward<F>(f), pimpl}
     };
     executor.post([pimpl]() {
         pimpl->coro = std::move(pimpl->coro).resume();
