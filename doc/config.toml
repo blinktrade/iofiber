@@ -1,0 +1,22 @@
+baseURL = "https://vinipsmaker.github.io/iofiber/"
+languageCode = "en-us"
+title = "IOFiber"
+
+metaDataFormat = "toml"
+theme = "beautifulhugo"
+
+[Params]
+subtitle = """
+IOFiber is a fiber library built on top of Boost.Context and Boost.Asio"""
+
+useHLJS = true
+
+[[menu.main]]
+name = "Tutorials(7)"
+url = "tutorial/"
+weight = 1
+
+[[menu.main]]
+name = "Reference(3)"
+url = "ref/"
+weight = 2

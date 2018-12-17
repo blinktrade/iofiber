@@ -1,0 +1,201 @@
++++
+title = "this_fiber"
++++
+
+[source,cpp]
+----
+class fiber::this_fiber;
+----
+
+To have access to a `this_fiber` object, just `spawn()` a fiber and an object of
+this type will be created for you. You can copy and pass it around freely to
+other functions as you wish, but you should only use its methods within the
+fiber context (i.e. within the fiber execution stack) that created it.
+
+IMPORTANT: `fiber` is a typedef for
+`basic_fiber<boost::asio::io_context::strand>`. `Strand` below will refer to the
+template argument of the instantiation used.
+
+== Member-functions
+
+=== `operator[]()`
+
+[source,cpp]
+----
+this_fiber operator[](boost::system::error_code& ec) const;
+----
+
+Will return a new `this_fiber` object which will fill `ec` instead throwing an
+exception when used as a completion token argument for `async_*` functions.
+
+Example:
+
+[source,cpp]
+----
+void start(fiber::this_fiber this_fiber)
+{
+  boost::asio::steady_timer timer{this_fiber.get_executor().context()};
+  timer.expires_from_now(std::chrono::seconds(1));
+
+  boost::system::error_code ec;
+  timer.async_wait(this_fiber[ec]);
+  if (ec) {
+    // ...
+----
+
+[[operator_call]]
+=== `operator()()`
+
+[source,cpp]
+----
+template<class T, class... Args>
+void operator()(T& o,
+                void(T::*async_fn)(
+                    Args..., const basic_this_fiber<Strand>&),
+                Args&&... args);
+----
+
+Sets the fiber <<interrupter,`interrupter`>> variable to `o.cancel()` and calls
+`(o.*async_fn)(std::forward<Args>(args)..., *this)`.
+
+`boost::asio::error::operation_aborted` errors will be translated to
+`fiber_interrupted` exceptions.
+
+Example:
+
+[source,cpp]
+----
+void start(fiber::this_fiber this_fiber)
+{
+  boost::asio::steady_timer timer{this_fiber.get_executor().context()};
+  timer.expires_from_now(std::chrono::seconds(1));
+
+  this_fiber(timer, &boost::asio::steady_timer::async_wait);
+----
+
+=== `get_executor()`
+
+[source,cpp]
+----
+Strand get_executor() const;
+----
+
+Returns the strand associated with this fiber. You can set the strand associated
+with the fiber by passing the desired strand by the time you call
+`spawn()`. User-code running on this fiber will always be executed through this
+strand. Implementation details might or might not move the fiber through
+different strands to perform some synchronization but no user code will be
+called while the fiber is in a foreign strand.
+
+=== `yield()`
+
+[source,cpp]
+----
+void yield();
+----
+
+Re-schedules the fiber to be executed soon. Use this function to yields CPU-time
+to other fibers if you don't want to block the thread while doing intensive CPU
+work for a long period of time.
+
+[[call]]
+=== `call()`
+
+[source,cpp]
+----
+template<class R, class T, class... Args>
+R call(T& o, R(T::*async_fn)(Args..., const basic_this_fiber<Strand>&),
+       Args&&... args);
+
+template<class T, class... Args>
+void call(T& o,
+          void(T::*async_fn)(Args..., const basic_this_fiber<Strand>&),
+          Args&&... args);
+----
+
+Sets the fiber <<interrupter,`interrupter`>> variable to `o.cancel()` and calls
+`(o.*async_fn)(std::forward<Args>(args)..., *this)`. If `R` is provided,
+function will return value from `async_fn()` call.
+
+`boost::asio::error::operation_aborted` errors will be translated to
+`fiber_interrupted` exceptions.
+
+Example:
+
+[source,cpp]
+----
+void start(fiber::this_fiber this_fiber)
+{
+  boost::asio::steady_timer timer{this_fiber.get_executor().context()};
+  timer.expires_from_now(std::chrono::seconds(1));
+
+  this_fiber.call<>(timer, &boost::asio::steady_timer::async_wait);
+----
+
+== Member variables
+
+[[interrupter]]
+=== `interrupter`
+
+[source,cpp]
+----
+std::function<void()>& interrupter;
+----
+
+When you interrupt a fiber (i.e. `fiber::interrupt()`), a generic interruption
+trigger will be executed to wake-up the fiber and throw a `fiber_interrupted`
+exception. However, this behaviour won't immediately cancel pending IO
+requests. Suppose your fiber is suspended in the following point when an
+interruption request arrives:
+
+[source,cpp]
+----
+void start(fiber::this_fiber this_fiber)
+{
+  boost::asio::steady_timer timer{this_fiber.get_executor().context()};
+  timer.expires_from_now(std::chrono::seconds(1));
+
+  try {
+    timer.async_wait(this_fiber);
+----
+
+You might postpone interruption fulfilment to later by having some code like
+this:
+
+[source,cpp]
+----
+  } catch (const fiber_interruption&) {
+    [[maybe_unused]]
+    fiber::this_fiber::disable_interruption di{this_fiber};
+
+    // some time (time != CPU time) consuming task here
+----
+
+By this point, the `timer` object is still alive and its pending request hasn't
+been cancelled yet — it'd be automatically cancelled by letting the destructor
+run.
+
+You can fix this situation by having a custom interrupter to wake-up the fiber
+when an interruption request arrives. Just assign a value to this variable right
+before reaching a fiber suspension point.
+
+NOTE: It's only useful to modify this variable for IO requests (i.e. `async_*`
+functions) as the default interrupter will do fine for `this_fiber.yield()`,
+`fib.join(this_fiber)` and other synchronization techniques shown here.
+
+.See also
+
+* <<operator_call,`operator()`>>.
+* <<call,`call()`>>.
+
+== Nested types
+
+=== `disable_interruption`
+
+Saves current interruption enabled state (and disable interruptions) on
+construction and restores it on destruction. It's non-moveable and non-copyable.
+
+=== `restore_interruption`
+
+TODO: check Boost.Thread's `restore_interruption` while I write documentation to
+this class. It's the same idea.

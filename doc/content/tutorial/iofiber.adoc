@@ -1,0 +1,181 @@
++++
+title = "IOFiber"
++++
+
+:_:
+
+Fibers are lightweight threads managed in user-space. Fibers from this library
+are:
+
+* Stackful.
+* Cooperative.
+* Use Boost.Asio execution contexts (e.g. `boost::asio::io_context`) as
+  schedulers. Any async function will work as a suspension point.
+* Non-symmetric. Main fiber and secondary fibers are exposed to different
+  APIs. There is a clear separation between fibers that run inside and outside
+  ASIO's execution contexts.
+
+`trial::iofiber::fiber` is an alias for
+`trial::iofiber::basic_fiber<boost::asio::io_context::strand>`. To spawn a
+fiber, use the function `spawn()` passing a strand `executor` and a fiber
+`start-function`. Fiber will be scheduled through `executor` and use it
+throughout its lifetime and `start-function` will be executed on top of fiber's
+stack:
+
+[source,cpp]
+----
+boost::asio::io_context ctx;
+boost::asio::io_context::strand strand{ctx};
+
+spawn(
+  strand,
+  [](fiber::this_fiber this_fiber) {
+    std::cout << "Hello World" << std::endl;
+  }
+).detach();
+
+ctx.run();
+----
+
+The start-function must have a `fiber::this_fiber` parameter through which it
+can have access to local/private{_}footnote:[API to fiber management which is
+only available from within the fiber itself and not through remote/foreign
+fibers.] functions. There is an overloaded `spawn()` shortcut function to
+instantiate a strand for you:
+
+[source,cpp]
+----
+boost::asio::io_context ctx;
+
+spawn(
+  ctx,
+  [](fiber::this_fiber this_fiber) {
+    std::cout << "Hello World" << std::endl;
+  }
+).detach();
+
+ctx.run();
+----
+
+And there is another `spawn()` shortcut function which will reuse the strand
+from the parent fiber:
+
+[source,cpp]
+----
+boost::asio::io_context ctx;
+
+spawn(
+  ctx,
+  [](fiber::this_fiber this_fiber) {
+    spawn(
+      this_fiber,
+      [](fiber::this_fiber this_fiber) {
+        std::cout << " World" << std::endl;
+      }
+    );
+
+    std::cout << "Hello";
+  }
+).detach();
+
+ctx.run();
+----
+
+All `spawn()` overloads return a `fiber` object which you must either `join()`
+or `detach()`. If you don't call any of these functions, ``fiber``'s destructor
+will call `strand.context().stop()` function to stop the
+application{_}footnote:[TODO:
+<https://github.com/vinipsmaker/iofiber/blob/0f863e94b3880291aab1973e1ba65907446c4f76/include/trial/iofiber/fiber.hpp#L251>]
+(a less severe alternative to `std::terminate()`).
+
+[NOTE]
+.Implementation details
+--
+It follows a design similar to POSIX threads:
+
+[quote, pthread_join(3)]
+____
+Failure to join with a thread that is joinable (i.e., one that is not detached),
+produces a "zombie thread".  Avoid doing this, since each zombie thread consumes
+some system resources, and when enough zombie threads have accumulated, it will
+no longer be possible to create new threads (or processes).
+____
+
+As of our fibers, each fiber will call `strand.on_work_started()` and the
+matching `strand.on_work_finished()` will only be called when you either
+`join()` or `detach()` a fiber. This behaviour allows you to safely join fibers
+from other execution contexts even if the foreign execution context runs out of
+work{_}footnote:[ASIO's strands are used extensively to do non-blocking
+synchronization and access to shared state. In the case of `join()`, the strand
+methods will be no-ops by the time `boost::asio::io_context::run()` returns, so
+we need to keep'em busy.].
+
+`std::thread` design evolution is also followed by having a movable object whose
+destructor will stop the world if it detects an error in the code logic.
+--
+
+[source,cpp]
+----
+boost::asio::io_context ioctx;
+
+auto f1 = spawn(
+  ioctx,
+  [](fib::fiber::this_fiber this_fiber) {
+    boost::asio::steady_timer timer{this_fiber.get_executor().context()};
+
+    std::cout << "3..." << std::flush;
+    timer.expires_from_now(std::chrono::seconds(1));
+    timer.async_wait(this_fiber);
+
+    std::cout << " 2..." << std::flush;
+    timer.expires_from_now(std::chrono::seconds(1));
+    timer.async_wait(this_fiber);
+
+    std::cout << " 1..." << std::endl;
+    timer.expires_from_now(std::chrono::seconds(1));
+    timer.async_wait(this_fiber);
+  }
+);
+
+spawn(
+  ioctx,
+  [&f1](fib::fiber::this_fiber this_fiber) {
+    f1.join(this_fiber);
+
+    std::cout << "Hello World" << std::endl;
+  }
+).detach();
+
+ioctx.run();
+----
+
+== `fiber::this_fiber`
+
+The `this_fiber` object passed to the fiber start-function is a completion token
+and you can use it with any ASIO's `async_*` functions.
+
+[source,cpp]
+----
+void start(fiber::this_fiber this_fiber)
+{
+  boost::asio::steady_timer timer{this_fiber.get_executor().context()};
+  timer.expires_from_now(std::chrono::seconds(1));
+  timer.async_wait(this_fiber);
+----
+
+You can also yield:
+
+[source,cpp]
+----
+this_fiber.yield();
+----
+
+All these points configure fiber suspension points. A fiber can be interrupted
+at any suspension point. If a fiber is interrupted while it hasn't reached a
+suspension point, it'll be interrupted the next time it reaches one. When
+interrupted, a `fiber_interruption` exception will be throw to perform
+stack-unwinding and any required clean-up. If the exception isn't caught by the
+user, the fiber will be destroyed and the application will continue normal
+execution (i.e. *no* `std::terminate()` will be called). `fiber_interruption`
+doesn't inherit `std::exception` to avoid that you accidentally catch this
+interruption.
