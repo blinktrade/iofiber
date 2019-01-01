@@ -15,7 +15,7 @@ int main()
 {
   asio::io_context ioctx;
 
-  auto f1 = fib::spawn(
+  fib::fiber f1 = fib::spawn(
     ioctx,
     [](fib::fiber::this_fiber this_fiber) {
       asio::steady_timer timer{this_fiber.get_executor().context()};
@@ -51,11 +51,11 @@ This library is _not_ a competitor to Boost.Fiber. This library aims to have
 tight integration with Boost.Asio execution engine. User-level differences are:
 
 * Strand-aware primitives. Minimize the need for locks. Group fibers into
-  strands and treat them like actors.
+  strands and treat each group as an actor.
 * Interruption API. IO requests might never complete. Even if they might
-  eventually complete we want to cancel them immediately to keep the
-  application's responsiveness acceptable. We need an interruption API that
-  takes integration with Boost.Asio IO objects into account.
+  eventually complete we want to cancel them immediately to keep the application
+  responsive. We need an interruption API that takes integration with Boost.Asio
+  IO objects into account.
 
 Boost.Asio already provides a stackful coroutine completion token. Reasons to
 use this library instead are:
@@ -80,4 +80,4 @@ TODO:
 
 * Check issues page.
 
-Check `iofiber(7)` to get started.
+Check link:tutorial/iofiber/[`iofiber(7)`] to get started.
