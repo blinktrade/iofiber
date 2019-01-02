@@ -1,0 +1,48 @@
++++
+title = "Background"
++++
+
+:_:
+
+== Interruption API
+
+This problem isn't new to fibers. On the thread domain the usual approaches are:
+
+* (Windows) Every time you block on a thread, do it using
+  `WaitForMultipleObjects` so another thread might signal you to stop your
+  activity and exit earlier. It's verbose and boring and error-prone and also
+  require extra non-standard communcation protocols/idioms between every spawned
+  thread and the killer thread.
++
+Bad as it is, this style hasn't
+died. https://www.sohamkamani.com/blog/golang/2018-06-17-golang-using-context-cancellation/[Go's
+approach to killing goroutines is conceptually equivalent to Windows approach,
+but syntactically less ugly and with a more standardized protocol/idiom].
+* (POSIX) Send an `INTR` signal to the thread.
+* POSIX Thread cancellation API.
+* Rust has no answer. And this is funny given the public appraisal for Rust
+  threading
+  capabilities. https://github.com/rust-lang/rust/blob/6b9b97bd9b704f85f0184f7a213cc4d62bd9654c/src/libstd/io/mod.rs#L1945[Still
+  worse is Rust getting in your way] (no good threading, no good fibers).
+* Java's `Thread.interrupt()` API is similar to POSIX Thread cancellation API
+  and it is
+  https://docs.oracle.com/javase/7/docs/technotes/guides/concurrency/threadPrimitiveDeprecation.html[one
+  of the few approaches that has not been deprecated because of bad
+  design]. However, Java design isn't free from problems either. The state
+  machine is too complicated and requires sharing too much knowledge between
+  target thread and killer thread.
+* Boost.Thread also mirrors POSIX Thread cancellation API, but takes conventions
+  from Java API to C++-ify the API (e.g. name `interrupt()` instead
+  `cancel()`, ...) and shoots a few ideas of its own.
+
+I've spent many hours researching before settling down on one single design. The
+chosen design mainly borrows from POSIX thread cancellation API and
+Boost.Thread.
+
+Other inspirations, even if minimal, were:
+
+* https://trio.readthedocs.io/en/latest/reference-core.html#trio.The%20cancel%20scope%20interface.cancelled_caught[Python's
+  trio `cancelled_caught()` method] served as an inspirational name for
+  `interruption_caught()`.
+* http://jehanne.io/2018/11/15/simplicity-awakes.html[Giacomo Tesio's awake
+  syscall idea] was an inspiration to `this_fiber.interrupter` field.

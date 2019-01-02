@@ -1,0 +1,202 @@
++++
+title = "Interruption"
++++
+
+:_:
+
+If a fiber is stalled waiting for some IO request that might never complete you
+still can use the interruption API to stop the fiber. The fiber interruption API
+was inspired by the POSIX thread cancellation API (and
+Boost.Thread)footnote:[Check link:../background/[_background(7)_] for a more
+comprehensive list.].
+
+== Interrupting a fiber
+
+If you want to interrupt a fiber, call `fiber::interrupt()`. An interruption
+request will be queued for near delivery to interrupt the fiber.
+
+The fiber will react to the interruption request when it next calls a function
+that is a suspension point (or if it is currently _suspended_ whilst executing
+one). If the target fiber has disabled interruption, then the interruption
+request remains queued until the fiber enables interruption _and_ reaches a new
+suspension point.
+
+NOTE: The semantics are the same of a POSIX's `PTHREAD_CANCEL_DEFERRED` thread.
+
+By default, the interruption request is delivered by throwing a
+`fiber_interrupted` exception originating at the suspension point. Unless this
+exception is caught inside the interrupted fiber's start-function, the stack
+unwinding process (as with any other exception) causes the destructors with
+automatic storage duration to be executed. Unlike other exceptions, when
+`fiber_interrupted` is propagated out of fiber's start-function, this does not
+cause the call to `std::terminate`; the effect is as though the fiber's
+start-function has returned normally.
+
+To avoid accidental trap of the `fiber_interrupted` exception, this class
+doesn't inherit `std::exception`.
+
+You can check whether the fiber finished by normal means or by letting the
+`fiber_interrupted` exception escape its stack by using
+`fiber::interruption_caught()` (after joining it).
+
+NOTE: `fiber::interruption_caught()` exposes the information that POSIX
+otherwise offers through `PTHREAD_CANCELED`.
+
+== Reacting to interruption requests
+
+When a fiber is interrupted and reaches a suspension point, a
+`fiber_interruption` exception will be throw and you'll be unable to perform any
+operation that would otherwise suspend the fiber.
+
+[NOTE]
+====
+It is safe to catch and swallow the `fiber_interrupted` exception using
+try-catch blocks. If you do this, `interruption_caught()` will return
+`false`.
+
+However, catching the `fiber_interrupted` exception is not enough to disable
+interruptions and perform operations abstracted with suspending functions. As
+soon as you call the suspending function within the catch block, another
+`fiber_interruption` exception will be throw (operation will not even start for
+what it is worth).
+====
+
+=== Disabling interruptions
+
+If you wish to temporarily disable interruptions and stay capable of using
+suspending functions, just instantiate an object of the class
+`fiber::this_fiber::disable_interruption`. Objects of this class disable
+interruption for the fiber that created them on construction, and restore the
+interruption state to whatever it was before on destruction:
+
+[source,cpp]
+----
+void f(fiber::this_fiber this_fiber)
+{
+  // interruption enabled here
+  {
+    fiber::this_fiber::disable_interruption di{this_fiber};
+    // interruption disabled
+    {
+      fiber::this_fiber::disable_interruption di2{this_fiber};
+      // interruption still disabled
+    } // di2 destroyed, interruption state restored
+    // interruption still disabled
+  } // di destroyed, interruption state restored
+  // interruption now enabled
+}
+----
+
+The effects of an instance of `fiber::this_fiber::disable_interruption` can be
+temporarily reversed by constructing an instance of
+`fiber::this_fiber::restore_interruption`, passing in the
+`fiber::this_fiber::disable_interruption` object in question. This will restore
+the interruption state to what it was when the
+`fiber::this_fiber::disable_interruption` object was constructed, and then
+disable interruption again when the `fiber::this_fiber::restore_interruption`
+object is destroyed.
+
+[source,cpp]
+----
+void g(fiber::this_fiber this_fiber)
+{
+  // interruption enabled here
+  {
+    fiber::this_fiber::disable_interruption di{this_fiber};
+    // interruption disabled
+    {
+      fiber::this_fiber::restore_interruption ri{di};
+      // interruption now enabled
+    } // ri destroyed, interruption disable again
+  } // di destroyed, interruption state restored
+  // interruption now enabled
+}
+----
+
+NOTE: This provides the functionality that POSIX otherwise offers through
+`pthread_setcancelstate()`.
+
+=== `async_*` functions
+
+When a fiber is interrupted at an `async_*` function, the underlying IO request
+isn't cancelled immediately. Usually, this is not a problem because in codes
+like this (which should be most of the code out there):
+
+[source,cpp]
+----
+void start(fiber::this_fiber this_fiber)
+{
+  boost::asio::steady_timer timer{this_fiber.get_executor().context()};
+  timer.expires_from_now(std::chrono::seconds(1));
+
+  boost::system::error_code ec;
+  timer.async_wait(this_fiber[ec]);
+  // ...
+}
+----
+
+If the fiber is interrupted, stack unwinding will play on and destruct the
+underlying IO objects causing the operations to be aborted.
+
+However, this behaviour is less than ideal and for this reason you can customize
+the interrupter by filling the `this_fiber.interrupter` variable:
+
+[source,cpp]
+----
+void start(fiber::this_fiber this_fiber)
+{
+  boost::asio::steady_timer timer{this_fiber.get_executor().context()};
+  timer.expires_from_now(std::chrono::seconds(1));
+
+  this_fiber.interrupter = [&timer]() { timer.cancel(); };
+
+  boost::system::error_code ec;
+  timer.async_wait(this_fiber[ec]);
+  // ...
+}
+----
+
+Unfortunately you still have to translate the
+`boost::asio::error::operation_aborted` error to a `fiber_interrupted` exception
+in this example on the suspension-site if you want to
+`fiber::interruption_caught()` to report exit reason correctly. To simplify
+matters further, the following syntax sugar is provided:
+
+[source,cpp]
+----
+void start(fiber::this_fiber this_fiber)
+{
+  boost::asio::steady_timer timer{this_fiber.get_executor().context()};
+  timer.expires_from_now(std::chrono::seconds(1));
+
+  boost::system::error_code ec;
+  this_fiber[ec](timer, &boost::asio::steady_timer::async_wait);
+  // ...
+}
+----
+
+== Suspension points
+
+Fibers are scheduled cooperatively which means that CPU time is only transferred
+from one fiber to the next at defined suspension points. The suspension points
+for fibers are:
+
+* Boost.Asio's `async_*` functions.
+* `this_fiber.yield()`.
+* `fiber::join(this_fiber)`.
+* Synchronization primitives such as mutexes and semaphores might suspend your
+  fiber when you try to acquire a resource and it isn't immediately
+  available. Refer to their documentation to check the adopted behaviour.
+
+Any functions that are compositions of these functions will also be functions
+that serve as suspension points and might throw `fiber_interrupted`.
+
+Use `this_fiber.yield()` if you want to create a suspension point so that a
+fiber that is otherwise executing code that contains no suspension points will
+respond to an interruption request.
+
+NOTE: Although `this_fiber.yield()` is semantically closer to POSIX's
+`sched_yield()`, you can use it to achieve the effects of POSIX's
+`pthread_testcancel()`.
+
+IMPORTANT: `fiber::interrupt()` is guaranteed to *NOT* be an interruption point.

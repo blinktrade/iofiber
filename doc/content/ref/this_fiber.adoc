@@ -195,7 +195,11 @@ functions) as the default interrupter will do fine for `this_fiber.yield()`,
 Saves current interruption enabled state (and disable interruptions) on
 construction and restores it on destruction. It's non-moveable and non-copyable.
 
+See link:../../tutorial/interruption/[`interruption(7)`] for more.
+
 === `restore_interruption`
 
-TODO: check Boost.Thread's `restore_interruption` while I write documentation to
-this class. It's the same idea.
+Temporarily reverses the effects of the `disable_interruption` object. It's
+non-moveable and non-copyable.
+
+See link:../../tutorial/interruption/[`interruption(7)`] for more.

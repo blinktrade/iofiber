@@ -72,7 +72,7 @@ spawn(
       [](fiber::this_fiber this_fiber) {
         std::cout << " World" << std::endl;
       }
-    );
+    ).detach();
 
     std::cout << "Hello";
   }
@@ -152,7 +152,7 @@ ioctx.run();
 == `fiber::this_fiber`
 
 The `this_fiber` object passed to the fiber start-function is a completion token
-and you can use it with any ASIO's `async_*` functions.
+and you can use it with any Boost.Asio's `async_*` function.
 
 [source,cpp]
 ----
@@ -160,22 +160,34 @@ void start(fiber::this_fiber this_fiber)
 {
   boost::asio::steady_timer timer{this_fiber.get_executor().context()};
   timer.expires_from_now(std::chrono::seconds(1));
-  timer.async_wait(this_fiber);
+  try {
+    timer.async_wait(this_fiber);
+    // ...
+  } catch (const boost::system::system_error& e) {
+    // ...
 ----
 
-You can also yield:
+If you want to handle `boost::system::error_code` errors directly instead having
+them translated to exceptions, use the `operator[]`:
+
+[source,cpp]
+----
+void start(fiber::this_fiber this_fiber)
+{
+  boost::asio::steady_timer timer{this_fiber.get_executor().context()};
+  timer.expires_from_now(std::chrono::seconds(1));
+
+  boost::system::error_code ec;
+  timer.async_wait(this_fiber[ec]);
+----
+
+Another ability `this_fiber` provides you is the ability to do spurious yields:
 
 [source,cpp]
 ----
 this_fiber.yield();
 ----
 
-All these points configure fiber suspension points. A fiber can be interrupted
-at any suspension point. If a fiber is interrupted while it hasn't reached a
-suspension point, it'll be interrupted the next time it reaches one. When
-interrupted, a `fiber_interruption` exception will be throw to perform
-stack-unwinding and any required clean-up. If the exception isn't caught by the
-user, the fiber will be destroyed and the application will continue normal
-execution (i.e. *no* `std::terminate()` will be called). `fiber_interruption`
-doesn't inherit `std::exception` to avoid that you accidentally catch this
-interruption.
+== See also:
+
+* link:../interruption/[`interruption(7)`]

@@ -1,0 +1,114 @@
++++
+title = "fiber"
++++
+
+[source,cpp]
+----
+class fiber;
+----
+
+This class is a move-only handle representing a spawned fiber. It's the object
+returned by `spawn()`.
+
+`fiber` objects may also be in a state that doesn't represent any fiber (after
+move-from, `detach()`, or `join()`).
+
+WARNING: If the object represents a valid fiber, you *MUST* either call
+`join(this_fiber)` or `detach()` before the destructor is run.
+
+IMPORTANT: `fiber` is a typedef for
+`basic_fiber<boost::asio::io_context::strand>`. `Strand` below will refer to the
+template argument of the instantiation used.
+
+== Member-functions
+
+=== `joinable()`
+
+[source,cpp]
+----
+bool joinable() const;
+----
+
+Checks if the fiber object identifies an active fiber of execution.
+
+=== `join()`
+
+[source,cpp]
+----
+void join(this_fiber this_fiber);
+
+template<class Strand2>
+void join(typename basic_fiber<Strand2>::this_fiber this_fiber);
+----
+
+Suspend current fiber (i.e. `this_fiber`) until the fiber identified by `*this`
+finishes its execution.
+
+Concurrently calling `join()` on the same `fiber` object from multiple fibers
+results in undefined behavior.
+
+.Preconditions
+
+`joinable()` is `true`.
+
+.Postconditions
+
+`joinable()` is `false`.
+
+.Exceptions
+
+`fiber_interrupted` if `this_fiber` is interrupted.
+
+NOTE: If joining process is interrupted the handle remains joinable so you may
+perform the `join()` operation again (or perform other operations like
+`interrupt()` and `detach()`).
+
+=== `detach()`
+
+[source,cpp]
+----
+void detach();
+----
+
+Separates the fiber of execution from the fiber object, allowing execution to
+continue independently. Any allocated resources will be freed once the fiber
+exits.
+
+.Preconditions
+
+`joinable()` is `true`.
+
+.Postconditions
+
+`joinable()` is `false`.
+
+=== `interrupt()`
+
+[source,cpp]
+----
+void interrupt();
+----
+
+See link:../../tutorial/interruption/[`interruption(7)`].
+
+=== `interruption_caught()`
+
+[source,cpp]
+----
+bool interruption_caught() const;
+----
+
+Check whether the fiber finished by normal means or by letting the
+`fiber_interrupted` exception escape its execution stack.
+
+See link:../../tutorial/interruption/[`interruption(7)`] for more.
+
+.Preconditions
+
+Fiber has been successfully joined.
+
+== Nested types
+
+=== `this_fiber`
+
+See link:../this_fiber/[`this_fiber(3)`].
