@@ -440,6 +440,18 @@ struct join_if_joinable
     }
 };
 
+struct interrupt_and_join_if_joinable
+{
+    template<class Fiber, class Yield>
+    void operator()(Fiber& fib, Yield& this_fiber)
+    {
+        fib.interrupt();
+        typename Yield::disable_interruption di(this_fiber);
+        boost::ignore_unused(di);
+        fib.join(this_fiber);
+    }
+};
+
 template<class CallableFiber = join_if_joinable,
          class JoinerStrand = boost::asio::io_context::strand,
          class JoineeStrand = boost::asio::io_context::strand>
