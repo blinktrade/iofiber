@@ -433,7 +433,8 @@ struct join_if_joinable
     void operator()(Fiber& fib, Yield& this_fiber)
     {
         try {
-            fib.join(this_fiber);
+            if (fib.joinable())
+                fib.join(this_fiber);
         } catch (const fiber_interrupted&) {
             fib.interrupt();
             typename Yield::disable_interruption di(this_fiber);
@@ -451,7 +452,8 @@ struct interrupt_and_join_if_joinable
         fib.interrupt();
         typename Yield::disable_interruption di(this_fiber);
         boost::ignore_unused(di);
-        fib.join(this_fiber);
+        if (fib.joinable())
+            fib.join(this_fiber);
     }
 };
 
@@ -472,6 +474,74 @@ public:
     ~strict_scoped_fiber()
     {
         static_cast<CallableFiber&>(*this)(fib, yield);
+    }
+
+private:
+    basic_fiber<JoineeStrand> fib;
+    typename basic_fiber<JoinerStrand>::this_fiber yield;
+};
+
+template<class CallableFiber = join_if_joinable,
+         class JoinerStrand = boost::asio::io_context::strand,
+         class JoineeStrand = boost::asio::io_context::strand>
+class scoped_fiber: private CallableFiber
+{
+public:
+    scoped_fiber(
+        basic_fiber<JoineeStrand> &&fib,
+        typename basic_fiber<JoinerStrand>::this_fiber this_fiber
+    )
+        : fib(std::move(fib))
+        , yield(std::move(this_fiber))
+    {}
+
+    scoped_fiber(scoped_fiber&& o)
+        : fib(std::move(o.fib))
+        , yield(std::move(o.yield))
+    {}
+
+    ~scoped_fiber()
+    {
+        static_cast<CallableFiber&>(*this)(fib, yield);
+    }
+
+    bool joinable() const
+    {
+        return fib.joinable();
+    }
+
+    template<class T>
+    void join(const T& this_fiber)
+    {
+        static_assert(
+            std::is_same<
+                T, typename basic_fiber<JoinerStrand>::this_fiber
+            >::value,
+            ""
+        );
+        assert(this_fiber.pimpl_ == this->yield.pimpl_);
+        boost::ignore_unused(this_fiber);
+        join();
+    }
+
+    void join()
+    {
+        fib.join(yield);
+    }
+
+    void detach()
+    {
+        fib.detach();
+    }
+
+    void interrupt()
+    {
+        fib.interrupt();
+    }
+
+    bool interruption_caught() const
+    {
+        return fib.interruption_caught();
     }
 
 private:
