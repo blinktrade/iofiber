@@ -312,6 +312,9 @@ public:
 
     void interrupt()
     {
+        if (!joinable())
+            return;
+
         bool interruption_in_progress = pimpl_->interrupted.exchange(true);
         if (!interruption_in_progress) {
             auto pimpl = pimpl_;
