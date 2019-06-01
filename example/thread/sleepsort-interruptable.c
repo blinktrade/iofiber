@@ -8,7 +8,7 @@
 
 static int pfd[2];
 
-void handler(int sig)
+void sighandler(int sig)
 {
     (void)(sig);
     if (write(pfd[1], ".", 1) == -1)
@@ -33,7 +33,7 @@ static void cancel_and_join(void* arg)
         // The biggest semantic difference between the C POSIX version and an
         // exception-based version is that we don't need to disable cancellation
         // -- via `pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL)` -- in
-        // the cleanup handler before the pthread_join().
+        // the cleanup handler before the pthread_join() call.
         if (pthread_join(info->thrds[i], NULL) != 0)
             exit(-1);
     }
@@ -117,7 +117,7 @@ int main()
     if (pipe(pfd) == -1)
         exit(-1);
 
-    if (signal(SIGUSR1, handler) == SIG_ERR)
+    if (signal(SIGUSR1, sighandler) == SIG_ERR)
         exit(-1);
 
     pthread_t sleeper = sleepsort(v, sizeof(v) / sizeof(v[0]));

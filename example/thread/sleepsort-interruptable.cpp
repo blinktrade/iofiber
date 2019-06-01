@@ -11,7 +11,7 @@
 
 static int pfd[2];
 
-void handler(int sig)
+void sighandler(int sig)
 {
     if (write(pfd[1], ".", 1) == -1)
         std::exit(-1);
@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
     if (pipe(pfd) == -1)
         std::exit(-1);
 
-    if (signal(SIGUSR1, handler) == SIG_ERR)
+    if (signal(SIGUSR1, sighandler) == SIG_ERR)
         std::exit(-1);
 
     auto sleeper = sleepsort(v);
