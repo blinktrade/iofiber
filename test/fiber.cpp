@@ -945,3 +945,24 @@ BOOST_AUTO_TEST_CASE(disable_interrupt_on_token2)
     BOOST_TEST(events == (std::vector<int>{2, 1}),
                boost::test_tools::per_element());
 }
+
+BOOST_AUTO_TEST_CASE(call_interrupt_on_invalid_fiber)
+{
+    asio::io_context ctx;
+
+    bool f_finished = false;
+
+    auto f = spawn(ctx, [&](fiber::this_fiber this_fiber) {
+        asio::steady_timer timer{this_fiber.get_executor().context()};
+        timer.expires_from_now(std::chrono::seconds(1));
+        timer.async_wait(this_fiber);
+        f_finished = true;
+    });
+
+    f.detach();
+    f.interrupt();
+
+    ctx.run();
+
+    BOOST_REQUIRE(f_finished);
+}
