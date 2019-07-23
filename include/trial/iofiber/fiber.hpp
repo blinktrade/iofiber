@@ -259,6 +259,7 @@ public:
         pimpl_ = std::move(o.pimpl_);
         joinable_state = o.joinable_state;
         o.joinable_state = joinable_type::DETACHED;
+        return *this;
     }
 
     basic_fiber(const basic_fiber&) = delete;
