@@ -1,0 +1,108 @@
++++
+title = "mutex"
++++
+
+[source,cpp]
+----
+template<class Strand>
+class basic_mutex;
+
+using mutex = basic_mutex<boost::asio::io_context::strand>;
+----
+
+WARNING: https://github.com/blinktrade/iofiber/issues/4[Right now the
+implementation only works to synchronize among fibers running in the same
+strand].
+
+== Member-functions
+
+=== _Constructor_
+
+[source,cpp]
+----
+basic_mutex(executor_type executor);
+----
+
+Constructs a new mutex.
+
+=== `get_executor()`
+
+[source,cpp]
+----
+executor_type get_executor() const;
+----
+
+Returns the strand associated with this mutex.
+
+=== `lock()`
+
+[source,cpp]
+----
+void lock(fiber::this_fiber this_fiber)
+----
+
+Locks the mutex. If another fiber has already locked the mutex, a call to
+`lock()` will suspend the current fiber until the lock is acquired.
+
+[IMPORTANT]
+--
+_Post_ semantics are not respected. If no fibers have acquired the lock when
+this call is made, _dispatch_ semantics will be used.
+--
+
+IMPORTANT: This function disables interruption while it acquires the lock.
+
+=== `unlock()`
+
+[source,cpp]
+----
+void unlock()
+----
+
+Unlocks the mutex.
+
+The mutex must be locked by the current fiber. Otherwise, the behavior is
+undefined.
+
+== Nested types
+
+=== `executor_type`
+
+[source,cpp]
+----
+using executor_type = Strand;
+----
+
+=== `guard`
+
+[source,cpp]
+----
+class guard
+{
+public:
+    guard(basic_mutex<Strand> &mutex, fiber::this_fiber this_fiber)
+        : mutex(&mutex)
+    {
+        mutex.lock(this_fiber);
+    }
+
+    guard(guard &&o)
+        : mutex(o.mutex)
+    {
+        o.mutex = nullptr;
+    }
+
+    guard(const guard &) = delete;
+
+    ~guard()
+    {
+        if (!mutex) // moved
+            return;
+
+        mutex->unlock();
+    }
+
+private:
+    basic_mutex<Strand> *mutex;
+};
+----

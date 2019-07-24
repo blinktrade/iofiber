@@ -55,7 +55,7 @@ void operator()(T& o,
                 Args&&... args);
 ----
 
-Sets the fiber <<interrupter,`interrupter`>> variable to `o.cancel()` and calls
+Set the fiber <<interrupter,`interrupter`>> variable to `o.cancel()` and calls
 `(o.*async_fn)(std::forward<Args>(args)..., *this)`.
 
 `boost::asio::error::operation_aborted` errors will be translated to
@@ -94,7 +94,7 @@ called while the fiber is in a foreign strand.
 void yield();
 ----
 
-Re-schedules the fiber to be executed soon. Use this function to yields CPU-time
+Re-schedules the fiber to be executed soon. Use this function to yield CPU-time
 to other fibers if you don't want to block the thread while doing intensive CPU
 work for a long period of time.
 
@@ -113,7 +113,7 @@ void call(T& o,
           Args&&... args);
 ----
 
-Sets the fiber <<interrupter,`interrupter`>> variable to `o.cancel()` and calls
+Set the fiber <<interrupter,`interrupter`>> variable to `o.cancel()` and calls
 `(o.*async_fn)(std::forward<Args>(args)..., *this)`. If `R` is provided,
 function will return value from `async_fn()` call.
 

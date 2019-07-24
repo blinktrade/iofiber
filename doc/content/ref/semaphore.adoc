@@ -1,0 +1,107 @@
++++
+title = "semaphore"
++++
+
+[source,cpp]
+----
+template<class Strand>
+class basic_semaphore;
+
+using semaphore = basic_semaphore<boost::asio::io_context::strand>;
+----
+
+WARNING: https://github.com/blinktrade/iofiber/issues/4[Right now the
+implementation only works to synchronize among fibers running in the same
+strand].
+
+NOTE: The interface for this semaphore is likely to change when the
+implementation is reworked.
+
+== Member-functions
+
+=== _Constructor_
+
+[source,cpp]
+----
+basic_semaphore(executor_type executor);
+----
+
+Constructs a new semaphore.
+
+=== `get_executor()`
+
+[source,cpp]
+----
+executor_type get_executor() const;
+----
+
+Returns the strand associated with this semaphore.
+
+=== `post()`
+
+[source,cpp]
+----
+void post();
+----
+
+After this call, one fiber that was waiting on the semaphore will run. If there
+was no fiber waiting for the semaphore, the next fiber that tries to wait on the
+semaphore won't block.
+
+=== `wait_for()`
+
+[source,cpp]
+----
+void wait_for(duration timeout_duration, fiber::this_fiber this_fiber);
+----
+
+Wait for a fiber to `post()` on this semaphore.
+
+IMPORTANT: This function disables interruption until operation completes.
+
+=== `get_value()`
+
+[source,cpp]
+----
+int get_value() const;
+----
+
+Returns the current value of the semaphore.
+
+=== `reset()`
+
+[source,cpp]
+----
+void reset();
+----
+
+If `get_value()` is larger than `0` before this call, `get_value()` will return
+`0` afterwards.
+
+[NOTE]
+--
+This function was added so user-code could periodically call it to avoid
+internal overflows (e.g. a fiber that consumes multiple events on a single
+`wait_for()` so value keeps increasing faster than it is decreased).
+
+An alternative solution would be to make `post()` also suspend the calling
+fiber, but _post_ semantics (not to confuse with the semaphore's `post()`
+function, we're talking about run-to-completion here) are critical to
+notification sections of some algorithms.
+--
+
+== Nested types
+
+=== `executor_type`
+
+[source,cpp]
+----
+using executor_type = Strand;
+----
+
+=== `duration`
+
+[source,cp]
+----
+using duration = std::chrono::steady_clock::duration;
+----
