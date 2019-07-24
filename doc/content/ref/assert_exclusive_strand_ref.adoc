@@ -1,0 +1,109 @@
++++
+title = "assert_exclusive_strand_ref"
++++
+
+[source,cpp]
+----
+template<class T, class Strand = boost::asio::io_context::strand>
+class assert_exclusive_strand_ref;
+----
+
+[quote, Gor Nishanov, '<http://open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0171r0.html>']
+____
+In coroutines the suspend point is clearly marked with `await`, which tells the
+reader that something unusual happens in this function and allows the reader,
+for example, to confirm whether the lifetimes of the objects of interest align
+with the lifetime of the coroutine or not, whether some locks need to be
+acquired to protect some concurrently accessed data, and whether some locks need
+to be released before the execution reaches the suspend point.
+____
+
+Our concurrency problems don't vanish when we adopt coroutines. It is very easy
+— even seductive — to abuse cooperative multitasking in a way we spare many
+round-trips to synchronization primitives when we want to touch shared
+variables.
+
+The lack of synchronization logic may even be seen as desired as we also dismiss
+the associated complexity that might hinder (maybe just a little of)
+performance.
+
+What we also bring to our homes together with such supposedly performance gains
+is a headache of an unmaintainable code. Advocates of the `await` keyword
+suggest we should read code paying attention to all suspension points. It is a
+suggestion that makes every coroutined suspension code equally hard to read. I
+don't know which `await` directives are safe or not. I'm not the writer of these
+codes. How can I know what is a safe access? The information isn't there until I
+understand the code fully (and productivity is lost in the process).
+
+An alternative is proposed here. Instead making `await` special, we make access
+to shared variables special. If a variable must not be modified/read by
+concurrent fibers in a critical section, we document our expectation using
+`assert_exclusive_strand_ref<T>`. It works just like an `assert()`. It won't add
+runtime penalty and we actually encode the knowledge of our expectation into the
+code.
+
+Objects of this type are not movable nor copy-able. They are intimately tied to
+some lexical scope, so it makes sense to disable these operations on them. They
+don't manage lifetime and their state can be completely inferred from the
+surrounding code, so we don't provide some common helpers either (e.g. `operator
+bool`).
+
+== Member-functions
+
+=== _Constructor_
+
+[source,cpp]
+----
+assert_exclusive_strand_ref(
+    T& o,
+    typename basic_fiber<Strand>::this_fiber& this_fiber
+);
+----
+
+Watches `o` and stores a reference (not a copy) to `this_fiber`.
+
+Calls `this_fiber.forbid_suspend()`.
+
+=== _Destructor_
+
+[source,cpp]
+----
+~assert_exclusive_strand_ref();
+----
+
+Calls `this_fiber.allow_suspend()` if watching some object.
+
+=== `operator*()`
+
+[source,cpp]
+----
+T& operator*() const;
+T* operator->() const;
+----
+
+Dereferences pointer to the watched object.
+
+=== `release()`
+
+[source,cpp]
+----
+void release();
+----
+
+Releases the pointer of the watched object. If there was a watched object
+previously, will also call `this_fiber.allow_suspend()`.
+
+=== `reset()`
+
+[source,cpp]
+----
+void reset(T& o);
+----
+
+Watches `o`. If there was no watched object previously, will also call
+`this_fiber.forbid_suspend()`.
+
+== See also
+
+* `this_fiber.forbid_suspend()`
+* `this_fiber.allow_suspend()`

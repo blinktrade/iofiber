@@ -132,6 +132,34 @@ void start(fiber::this_fiber this_fiber)
   this_fiber.call<>(timer, &boost::asio::steady_timer::async_wait);
 ----
 
+=== `{forbid,allow}_suspend()`
+
+[source,cpp]
+----
+void forbid_suspend();
+void allow_suspend();
+----
+
+These functions are in the same level of usefulness of an `assert()`
+directive. They're only useful if there are comprehensive test cases and they
+expand to no-ops if compiled with `NDEBUG`.
+
+Still, the use of these functions may make the code more readable. And some
+tools may be developed to understand these blocks and do some simple static
+analysis.
+
+A call to `forbid_suspend()` will put the fiber in the state of
+_suspension-disallowed_ and any attempt to suspend the fiber while it is in this
+state will call `std::abort()`.
+
+`forbid_suspend()` may be called multiple times. A matching number of calls to
+`allow_suspend()` will put the fiber out of the _suspension-disallowed_ state.
+
+``this_fiber``'s copy constructor will also trigger a call to `std::abort()` if
+the fiber is in the `suspension-disallowed` state as the copy constructor is
+only used to make calls to functions that potentially suspend and this defensive
+behaviour will make you less dependant of fully comprehensive tests.
+
 == Member variables
 
 [[interrupter]]

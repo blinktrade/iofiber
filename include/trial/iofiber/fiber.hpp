@@ -84,6 +84,11 @@ public:
             : pimpl(*this_fiber.pimpl_)
             , previous_state(pimpl.interruption_enabled)
         {
+#ifndef NDEBUG
+            // You already assume there will be no suspensions so it doesn't
+            // make sense to worry about interruptions. Refactor your code.
+            assert(this_fiber.suspension_disallowed == 0);
+#endif // NDEBUG
             pimpl.interruption_enabled = false;
         }
 
@@ -128,7 +133,17 @@ public:
         , pimpl_(std::move(pimpl))
     {}
 
+#ifdef NDEBUG
     basic_this_fiber(const basic_this_fiber<Strand>&) = default;
+#else
+    basic_this_fiber(const basic_this_fiber<Strand>& o)
+        : interrupter(o.interrupter)
+        , pimpl_(o.pimpl_)
+        , out_ec_(o.out_ec_)
+    {
+        assert(o.suspension_disallowed == 0);
+    }
+#endif // NDEBUG
 
     basic_this_fiber<Strand> operator[](boost::system::error_code &ec)
     {
@@ -144,6 +159,9 @@ public:
 
     void yield()
     {
+#ifndef NDEBUG
+        assert(suspension_disallowed == 0);
+#endif // NDEBUG
         if (pimpl_->interruption_enabled && pimpl_->interrupted.load()) {
             throw fiber_interrupted();
         }
@@ -166,6 +184,9 @@ public:
     call(T& o, R(T::*async_fn)(Args..., const basic_this_fiber<Strand>&),
          Args&&... args)
     {
+#ifndef NDEBUG
+        assert(suspension_disallowed == 0);
+#endif // NDEBUG
         interrupter = [&o]() { o.cancel(); };
         try {
             auto ret = (o.*async_fn)(std::forward<Args>(args)..., *this);
@@ -186,6 +207,9 @@ public:
               void(T::*async_fn)(Args..., const basic_this_fiber<Strand>&),
               Args&&... args)
     {
+#ifndef NDEBUG
+        assert(suspension_disallowed == 0);
+#endif // NDEBUG
         interrupter = [&o]() { o.cancel(); };
         try {
             (o.*async_fn)(std::forward<Args>(args)..., *this);
@@ -206,7 +230,25 @@ public:
                         Args..., const basic_this_fiber<Strand>&),
                     Args&&... args)
     {
+#ifndef NDEBUG
+        assert(suspension_disallowed == 0);
+#endif // NDEBUG
         call<void, T>(o, async_fn, std::forward<Args>(args)...);
+    }
+
+    void forbid_suspend()
+    {
+#ifndef NDEBUG
+        ++suspension_disallowed;
+#endif // NDEBUG
+    }
+
+    void allow_suspend()
+    {
+#ifndef NDEBUG
+        assert(suspension_disallowed > 0);
+        --suspension_disallowed;
+#endif // NDEBUG
     }
 
     // Having some “global” state to be used by the next call resembles OpenGL
@@ -219,6 +261,9 @@ public:
     // Private {{{
     std::shared_ptr<impl> pimpl_;
     boost::system::error_code *out_ec_ = nullptr;
+#ifndef NDEBUG
+    int suspension_disallowed = 0;
+#endif // NDEBUG
     // }}}
 };
 
@@ -272,6 +317,9 @@ public:
 
     void join(this_fiber this_fiber)
     {
+#ifndef NDEBUG
+        assert(this_fiber.suspension_disallowed == 0);
+#endif // NDEBUG
         assert(joinable());
         if (this_fiber.pimpl_->interruption_enabled
             && this_fiber.pimpl_->interrupted.load()) {
@@ -293,6 +341,9 @@ public:
     template<class Strand2>
     void join(typename basic_fiber<Strand2>::this_fiber this_fiber)
     {
+#ifndef NDEBUG
+        assert(this_fiber.suspension_disallowed == 0);
+#endif // NDEBUG
         assert(joinable());
         if (this_fiber.pimpl_->interruption_enabled
             && this_fiber.pimpl_->interrupted.load()) {
@@ -550,6 +601,62 @@ private:
     typename basic_fiber<JoinerStrand>::this_fiber yield;
 };
 
+template<class T, class Strand = boost::asio::io_context::strand>
+class assert_exclusive_strand_ref
+{
+public:
+    assert_exclusive_strand_ref(
+        T& o,
+        typename basic_fiber<Strand>::this_fiber& this_fiber
+    )
+        : obj(nullptr)
+        , this_fiber(this_fiber)
+    {
+        reset(o);
+    }
+
+    ~assert_exclusive_strand_ref()
+    {
+        release();
+    }
+
+    // This wrapper is always tied to a finite lexical scope. Its purpose is
+    // *NOT* to manage lifetimes.
+    assert_exclusive_strand_ref(const assert_exclusive_strand_ref&) = delete;
+    assert_exclusive_strand_ref&
+    operator=(const assert_exclusive_strand_ref&) = delete;
+
+    T& operator*() const
+    {
+        assert(obj);
+        return *obj;
+    }
+
+    T* operator->() const
+    {
+        assert(obj);
+        return obj;
+    }
+
+    void release()
+    {
+        if (obj)
+            this_fiber.allow_suspend();
+        obj = nullptr;
+    }
+
+    void reset(T& o)
+    {
+        release();
+        this_fiber.forbid_suspend();
+        obj = &o;
+    }
+
+private:
+    T* obj;
+    typename basic_fiber<Strand>::this_fiber& this_fiber;
+};
+
 namespace detail {
 template<class Strand, class F>
 struct SpawnFunctor
@@ -706,6 +813,9 @@ public:
             , out_ec(tkn.out_ec_)
             , executor(tkn.get_executor())
         {
+#ifndef NDEBUG
+            assert(tkn.suspension_disallowed == 0);
+#endif // NDEBUG
             if (pimpl->interruption_enabled && pimpl->interrupted.load()) {
                 pimpl->interrupter = std::function<void()>{};
                 throw trial::iofiber::fiber_interrupted();
@@ -802,6 +912,9 @@ public:
             , token(++tkn.pimpl_->resume_token)
             , executor(tkn.get_executor())
         {
+#ifndef NDEBUG
+            assert(tkn.suspension_disallowed == 0);
+#endif // NDEBUG
             if (pimpl->interruption_enabled && pimpl->interrupted.load()) {
                 pimpl->interrupter = std::function<void()>{};
                 throw trial::iofiber::fiber_interrupted();
