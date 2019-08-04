@@ -6,6 +6,8 @@
 #ifndef TRIAL_IOFIBER_FIBER_H
 #define TRIAL_IOFIBER_FIBER_H
 
+#include <stdexcept>
+
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/strand.hpp>
@@ -301,6 +303,13 @@ public:
 
     basic_fiber& operator=(basic_fiber&& o)
     {
+        if (joinable_state == joinable_type::JOINABLE) {
+            // TODO: inject a `ServiceTerminated` service into service to
+            // signalize abnormal termination.
+            pimpl_->executor.context().stop();
+            throw std::logic_error{"fiber handle leak"};
+        }
+
         pimpl_ = std::move(o.pimpl_);
         joinable_state = o.joinable_state;
         o.joinable_state = joinable_type::DETACHED;
