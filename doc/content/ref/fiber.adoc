@@ -112,3 +112,19 @@ Fiber has been successfully joined.
 === `this_fiber`
 
 See link:../this_fiber/[`this_fiber(3)`].
+
+== Free functions
+
+=== `context_aborted()`
+
+[source,cpp]
+----
+bool context_aborted(boost::asio::io_context& ctx);
+----
+
+Check whether the context finished normally or abnormally. The context will be
+terminated when you fail to `join()` or `detach()` a joinable fiber (abnormal
+termination).
+
+The context is terminated through the usual call to `ctx.stop()` in case you're
+concerned. In addition, a `std::logic_error` may also be raised.

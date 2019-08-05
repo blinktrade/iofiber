@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 BlinkTrade, Inc.
+/* Copyright (c) 2018, 2019 BlinkTrade, Inc.
 
    Distributed under the Boost Software License, Version 1.0. (See accompanying
    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt) */
@@ -269,7 +269,24 @@ public:
     // }}}
 };
 
+class service_aborted: public boost::asio::io_context::service
+{
+public:
+    using key_type = service_aborted;
+
+    explicit service_aborted(boost::asio::io_context& ctx)
+        : boost::asio::io_context::service(ctx)
+    {}
+
+    static boost::asio::io_context::id id;
+};
+
 } // namespace detail {
+
+inline bool context_aborted(boost::asio::io_context& ctx)
+{
+    return boost::asio::has_service<detail::service_aborted>(ctx);
+}
 
 template<class Strand>
 class basic_fiber
@@ -295,8 +312,8 @@ public:
     ~basic_fiber()
     {
         if (joinable_state == joinable_type::JOINABLE) {
-            // TODO: inject a `ServiceTerminated` service into service to
-            // signalize abnormal termination.
+            boost::asio::use_service<detail::service_aborted>(
+                pimpl_->executor.context());
             pimpl_->executor.context().stop();
         }
     }
@@ -304,8 +321,8 @@ public:
     basic_fiber& operator=(basic_fiber&& o)
     {
         if (joinable_state == joinable_type::JOINABLE) {
-            // TODO: inject a `ServiceTerminated` service into service to
-            // signalize abnormal termination.
+            boost::asio::use_service<detail::service_aborted>(
+                pimpl_->executor.context());
             pimpl_->executor.context().stop();
             throw std::logic_error{"fiber handle leak"};
         }

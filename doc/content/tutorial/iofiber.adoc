@@ -83,10 +83,9 @@ ctx.run();
 
 All `spawn()` overloads return a `fiber` object which you must either `join()`
 or `detach()`. If you don't call any of these functions, ``fiber``'s destructor
-will call `strand.context().stop()` function to stop the
-application{_}footnote:[TODO:
-<https://github.com/vinipsmaker/iofiber/blob/0f863e94b3880291aab1973e1ba65907446c4f76/include/trial/iofiber/fiber.hpp#L251>]
-(a less severe alternative to `std::terminate()`).
+will call `strand.context().stop()` function to stop the application (a less
+severe alternative to `std::terminate()`). You can check whether the application
+finished normally or abnormally using `trial::iofiber::context_aborted()`.
 
 [NOTE]
 .Implementation details

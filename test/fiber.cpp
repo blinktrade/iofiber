@@ -966,3 +966,52 @@ BOOST_AUTO_TEST_CASE(call_interrupt_on_invalid_fiber)
 
     BOOST_REQUIRE(f_finished);
 }
+
+BOOST_AUTO_TEST_CASE(terminate_service)
+{
+    asio::io_context ctx;
+
+    context_aborted(ctx);
+    BOOST_REQUIRE(!context_aborted(ctx));
+
+    ctx.run();
+
+    context_aborted(ctx);
+    BOOST_REQUIRE(!context_aborted(ctx));
+}
+
+BOOST_AUTO_TEST_CASE(terminate_service2)
+{
+    asio::io_context ctx;
+
+    bool ran = false;
+
+    spawn(ctx, [&](fiber::this_fiber /*this_fiber*/) {
+        ran = true;
+    });
+
+    ctx.run();
+
+    BOOST_REQUIRE(!ran);
+    BOOST_REQUIRE(context_aborted(ctx));
+}
+
+BOOST_AUTO_TEST_CASE(terminate_service3)
+{
+    asio::io_context ctx;
+
+    auto f = spawn(ctx, [](fiber::this_fiber /*this_fiber*/) {});
+    auto f2 = spawn(ctx, [](fiber::this_fiber /*this_fiber*/) {});
+
+    BOOST_REQUIRE_THROW((f = std::move(f2)), std::logic_error);
+
+    if (f.joinable())
+        f.detach();
+
+    if (f2.joinable())
+        f2.detach();
+
+    ctx.run();
+
+    BOOST_REQUIRE(context_aborted(ctx));
+}
