@@ -683,6 +683,47 @@ private:
     typename basic_fiber<Strand>::this_fiber& this_fiber;
 };
 
+template<class Strand>
+class assert_exclusive_strand_ref<void, Strand>
+{
+public:
+    assert_exclusive_strand_ref(
+        typename basic_fiber<Strand>::this_fiber& this_fiber
+    )
+        : obj(false)
+        , this_fiber(this_fiber)
+    {
+        reset();
+    }
+
+    ~assert_exclusive_strand_ref()
+    {
+        release();
+    }
+
+    assert_exclusive_strand_ref(const assert_exclusive_strand_ref&) = delete;
+    assert_exclusive_strand_ref&
+    operator=(const assert_exclusive_strand_ref&) = delete;
+
+    void release()
+    {
+        if (obj)
+            this_fiber.allow_suspend();
+        obj = false;
+    }
+
+    void reset()
+    {
+        release();
+        this_fiber.forbid_suspend();
+        obj = true;
+    }
+
+private:
+    bool obj;
+    typename basic_fiber<Strand>::this_fiber& this_fiber;
+};
+
 namespace detail {
 template<class Strand, class F>
 struct SpawnFunctor

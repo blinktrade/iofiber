@@ -2,6 +2,8 @@
 title = "assert_exclusive_strand_ref"
 +++
 
+:_:
+
 [source,cpp]
 ----
 template<class T, class Strand = boost::asio::io_context::strand>
@@ -28,12 +30,13 @@ the associated complexity that might hinder (maybe just a little of)
 performance.
 
 What we also bring to our homes together with such supposedly performance gains
-is a headache of an unmaintainable code. Advocates of the `await` keyword
-suggest we should read code paying attention to all suspension points. It is a
+is a headache of unmaintainable code. Advocates of the `await` keyword suggest
+we should read code paying attention to all suspension points. It is a
 suggestion that makes every coroutined suspension code equally hard to read. I
 don't know which `await` directives are safe or not. I'm not the writer of these
 codes. How can I know what is a safe access? The information isn't there until I
-understand the code fully (and productivity is lost in the process).
+fully understand the code and the surrounding context (and productivity is lost
+in the process).
 
 An alternative is proposed here. Instead making `await` special, we make access
 to shared variables special. If a variable must not be modified/read by
@@ -48,14 +51,144 @@ don't manage lifetime and their state can be completely inferred from the
 surrounding code, so we don't provide some common helpers either (e.g. `operator
 bool`).
 
+P0171R0 had the following example to illustrate the original argument:
+
+[source,cpp]
+----
+auto foo(string & s) {
+   s.push_back('<');
+   do-stuff
+   s.push_back('>');
+}
+----
+
+Using `assert_exclusive_strand_ref<T>`, we can rewrite the code as follows:
+
+[source,cpp]
+----
+auto foo(string & s) {
+   assert_exclusive_strand_ref<string> s{s};
+   s->push_back('<');
+   do-stuff
+   s->push_back('>');
+}
+----
+
+But given the `await`-less coroutine support is absent in the language-level, we
+have to resort to the following code for this very library:
+
+[source,cpp]
+----
+auto foo(string & s, fiber::this_fiber this_fiber) {
+   assert_exclusive_strand_ref<string> s{s, this_fiber};
+   s->push_back('<');
+   do-stuff
+   s->push_back('>');
+}
+----
+
+The code presented is actually pretty simple as all we need is to delimit a
+_forbid-suspend_ block. In fact, my previous attempt to solve the problem over a
+year ago relied on a very stupid static analyser implemented on top of the
+Python bindings for the LLVM
+project{_}footnote:[<https://gist.github.com/vinipsmaker2/d930fbe5b7597432b021effe618da171>]. Using
+the such script, the solution would actually be:
+
+[source,cpp]
+----
+auto foo(string & s) {
+   [[forbid_suspend]] {
+      s.push_back('<');
+      do-stuff
+      s.push_back('>');
+   }
+}
+----
+
+But from personal experience working daily on a project heavily based on
+Boost.Asio and fibers, the block approach showed itself unable to handle more
+complex cases as I hit cases where I'd need to enable suspension again in the
+middle of the block. One of the cases that best illustrate the limitation can be
+reduced as:
+
+[source,cpp]
+----
+void MyApp::on_update(std::variant<A, B>& state, auto this_fiber)
+{
+    std::visit([&](auto& e) {
+        using T = std::decay_t<decltype(e)>;
+        if constexpr (std::is_same_v<T, A>) {
+            auto msg = generate_msg(this->view, e);
+            foo.async_write(msg, this_fiber);
+            // from here we shouldn't touch `this->view` again
+        } else if constexpr (std::is_same_v<T, B>) {
+            auto msg = generate_msg(this->view, e);
+            bar.async_write(msg, this_fiber);
+            // from here we shouldn't touch `this->view` again
+        }
+    }, state);
+}
+----
+
+The original code was 77 lines long. From this count, 24 lines were dense
+comments. Before we reach any `async_write`, we must not have any suspension
+point or else `this->view` will reflect state unrelated to `state`. And when we
+do the necessary preparations to call `async_write`... well... we have to
+suspend the fiber. Where `\[[forbid_suspend]]` blocks would fail, we can resort
+to `assert_strand_exclusive_ref<T>`:
+
+[source,cpp]
+----
+void MyApp::on_update(std::variant<A, B>& state, auto this_fiber)
+{
+    assert_exclusive_strand_ref<View> view{
+        this->view, this_fiber
+    };
+
+    std::visit([&](auto& e) {
+        using T = std::decay_t<decltype(e)>;
+        if constexpr (std::is_same_v<T, A>) {
+            auto msg = generate_msg(*view, e); //< NEW
+            view.release();                    //< NEW
+            foo.async_write(msg, this_fiber);
+            // any attempts to dereference `view`
+            // here will fail *loudly*
+        } else if constexpr (std::is_same_v<T, B>) {
+            auto msg = generate_msg(*view, e); //< NEW
+            view.release();                    //< NEW
+            bar.async_write(msg, this_fiber);
+            // any attempts to dereference `view`
+            // here will fail *loudly*
+        }
+    }, state);
+}
+----
+
+I have been using `assert_exclusive_strand_ref<T>` on othes places that requires
+different patterns not similar to the previous one and so far it has been a good
+fit.
+
+A nice collateral effect is it encodes the _reason_ why/when a fiber can't
+suspend. It definitively made the code much easier to read and more
+maintainable.
+
+A `void` specialization is provided to cover smaller blocks where we can go
+without any documentation/reason.
+
 == Member-functions
 
 === _Constructor_
 
 [source,cpp]
 ----
+// Not available when T=void
 assert_exclusive_strand_ref(
     T& o,
+    typename basic_fiber<Strand>::this_fiber& this_fiber
+);
+
+// Only available when T=void
+assert_exclusive_strand_ref(
     typename basic_fiber<Strand>::this_fiber& this_fiber
 );
 ----
@@ -77,6 +210,7 @@ Calls `this_fiber.allow_suspend()` if watching some object.
 
 [source,cpp]
 ----
+// Not available when T=void
 T& operator*() const;
 T* operator->() const;
 ----
@@ -97,7 +231,11 @@ previously, will also call `this_fiber.allow_suspend()`.
 
 [source,cpp]
 ----
+// Not available when T=void
 void reset(T& o);
+
+// Only available when T=void
+void reset();
 ----
 
 Watches `o`. If there was no watched object previously, will also call
