@@ -92,7 +92,7 @@ _forbid-suspend_ block. In fact, my previous attempt to solve the problem over a
 year ago relied on a very stupid static analyser implemented on top of the
 Python bindings for the LLVM
 project{_}footnote:[<https://gist.github.com/vinipsmaker2/d930fbe5b7597432b021effe618da171>]. Using
-the such script, the solution would actually be:
+such script, the solution would actually be:
 
 [source,cpp]
 ----

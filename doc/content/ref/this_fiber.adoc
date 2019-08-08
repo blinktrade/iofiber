@@ -153,12 +153,18 @@ _suspension-disallowed_ and any attempt to suspend the fiber while it is in this
 state will call `std::abort()`.
 
 `forbid_suspend()` may be called multiple times. A matching number of calls to
-`allow_suspend()` will put the fiber out of the _suspension-disallowed_ state.
+`allow_suspend()` will put the fiber out of the _suspension-disallowed_
+state. You must not call `allow_suspend()` if there was no prior call to
+`forbid_suspend()`.
 
 ``this_fiber``'s copy constructor will also trigger a call to `std::abort()` if
 the fiber is in the `suspension-disallowed` state as the copy constructor is
 only used to make calls to functions that potentially suspend and this defensive
 behaviour will make you less dependant of fully comprehensive tests.
+
+See also the
+link:../assert_exclusive_strand_ref/[`assert_exclusive_strand_ref(3)`] RAII
+helper.
 
 == Member variables
 

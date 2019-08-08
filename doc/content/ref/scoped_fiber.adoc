@@ -1,0 +1,205 @@
++++
+title = "scoped_fiber"
++++
+
+[source,cpp]
+----
+struct join_if_joinable;
+struct interrupt_and_join_if_joinable;
+
+template<class CallableFiber = join_if_joinable,
+         class JoinerStrand = boost::asio::io_context::strand,
+         class JoineeStrand = boost::asio::io_context::strand>
+class strict_scoped_fiber;
+
+template<class CallableFiber = join_if_joinable,
+         class JoinerStrand = boost::asio::io_context::strand,
+         class JoineeStrand = boost::asio::io_context::strand>
+class scoped_fiber;
+----
+
+These wrappers have the same motivation in spirit as Boost.Thread:
+
+[quote, 'https://www.boost.org/doc/libs/1_70_0/doc/html/thread/ScopedThreads.html[Boost.Thread documentation]']
+____
+Scoped Threads are wrappers around a thread that allows the user to state what
+to do at destruction time. One of the common uses is to join the thread at
+destruction time so this is the default behavior. This is the single difference
+respect to a thread. While thread call std::terminate() on the destructor if the
+thread is joinable, strict_scoped_thread<> or scoped_thread<> join the thread if
+joinable.
+
+The difference between strict_scoped_thread and scoped_thread is that the
+strict_scoped_thread hides completely the owned thread and so the user can do
+nothing with the owned thread other than the specific action given as parameter,
+while scoped_thread provide the same interface as `thread` and forwards all the
+operations.
+
+[source,cpp]
+----
+boost::strict_scoped_thread<> t1((boost::thread(f)));
+//t1.detach(); // compile fails
+boost::scoped_thread<> t2((boost::thread(f)));
+t2.detach();
+----
+____
+
+== Free fiber functors
+
+=== Functor `join_if_joinable`
+
+[source,cpp]
+----
+struct join_if_joinable
+{
+    template<class Fiber, class Yield>
+    void operator()(Fiber& fib, Yield& this_fiber)
+    {
+        try {
+            if (fib.joinable())
+                fib.join(this_fiber);
+        } catch (const fiber_interrupted&) {
+            fib.interrupt();
+            typename Yield::disable_interruption di(this_fiber);
+            boost::ignore_unused(di);
+            fib.join(this_fiber);
+        }
+    }
+};
+----
+
+=== Functor `interrupt_and_join_if_joinable`
+
+[source,cpp]
+----
+struct interrupt_and_join_if_joinable
+{
+    template<class Fiber, class Yield>
+    void operator()(Fiber& fib, Yield& this_fiber)
+    {
+        fib.interrupt();
+        typename Yield::disable_interruption di(this_fiber);
+        boost::ignore_unused(di);
+        if (fib.joinable())
+            fib.join(this_fiber);
+    }
+};
+----
+
+== Class `strict_scoped_fiber`
+
+[source,cpp]
+----
+template<class CallableFiber = join_if_joinable,
+         class JoinerStrand = boost::asio::io_context::strand,
+         class JoineeStrand = boost::asio::io_context::strand>
+class strict_scoped_fiber: private CallableFiber
+{
+public:
+    strict_scoped_fiber(
+        basic_fiber<JoineeStrand> &&fib,
+        typename basic_fiber<JoinerStrand>::this_fiber this_fiber
+    )
+        : fib(std::move(fib))
+        , yield(std::move(this_fiber))
+    {}
+
+    ~strict_scoped_fiber()
+    {
+        static_cast<CallableFiber&>(*this)(fib, yield);
+    }
+
+private:
+    basic_fiber<JoineeStrand> fib;
+    typename basic_fiber<JoinerStrand>::this_fiber yield;
+};
+----
+
+As in Boost.Thread:
+
+[quote, Boost.Thread documentation]
+____
+RAII `thread` wrapper adding a specific destroyer allowing to master what can be
+done at destruction time.
+____
+
+== Class `scoped_fiber`
+
+[source,cpp]
+----
+template<class CallableFiber = join_if_joinable,
+         class JoinerStrand = boost::asio::io_context::strand,
+         class JoineeStrand = boost::asio::io_context::strand>
+class scoped_fiber: private CallableFiber
+{
+public:
+    scoped_fiber(
+        basic_fiber<JoineeStrand> &&fib,
+        typename basic_fiber<JoinerStrand>::this_fiber this_fiber
+    )
+        : fib(std::move(fib))
+        , yield(std::move(this_fiber))
+    {}
+
+    scoped_fiber(scoped_fiber&& o)
+        : fib(std::move(o.fib))
+        , yield(std::move(o.yield))
+    {}
+
+    ~scoped_fiber()
+    {
+        static_cast<CallableFiber&>(*this)(fib, yield);
+    }
+
+    bool joinable() const
+    {
+        return fib.joinable();
+    }
+
+    template<class T>
+    void join(const T& this_fiber)
+    {
+        static_assert(
+            std::is_same<
+                T, typename basic_fiber<JoinerStrand>::this_fiber
+            >::value,
+            ""
+        );
+        assert(this_fiber.pimpl_ == this->yield.pimpl_);
+        boost::ignore_unused(this_fiber);
+        join();
+    }
+
+    void join()
+    {
+        fib.join(yield);
+    }
+
+    void detach()
+    {
+        fib.detach();
+    }
+
+    void interrupt()
+    {
+        fib.interrupt();
+    }
+
+    bool interruption_caught() const
+    {
+        return fib.interruption_caught();
+    }
+
+private:
+    basic_fiber<JoineeStrand> fib;
+    typename basic_fiber<JoinerStrand>::this_fiber yield;
+};
+----
+
+As in Boost.Thread:
+
+[quote, Boost.Thread documentation]
+____
+RAII `thread` wrapper adding a specific destroyer allowing to master what can be
+done at destruction time.
+____
