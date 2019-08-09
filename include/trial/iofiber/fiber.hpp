@@ -884,7 +884,7 @@ public:
             assert(tkn.suspension_disallowed == 0);
 #endif // NDEBUG
             if (pimpl->interruption_enabled && pimpl->interrupted.load()) {
-                pimpl->interrupter = std::function<void()>{};
+                pimpl->interrupter = nullptr;
                 throw trial::iofiber::fiber_interrupted();
             }
         }
@@ -896,6 +896,7 @@ public:
             if (token != pimpl->resume_token)
                 return;
 
+            pimpl->interrupter = nullptr;
             this->args->ec = ec;
             this->args->ret = std::forward_as_tuple(args...);
             pimpl->coro = std::move(pimpl->coro).resume();
@@ -908,6 +909,7 @@ public:
             if (token != pimpl->resume_token)
                 return;
 
+            pimpl->interrupter = nullptr;
             this->args->ec = ec;
             this->args->ret = std::forward<T>(arg);
             pimpl->coro = std::move(pimpl->coro).resume();
@@ -983,7 +985,7 @@ public:
             assert(tkn.suspension_disallowed == 0);
 #endif // NDEBUG
             if (pimpl->interruption_enabled && pimpl->interrupted.load()) {
-                pimpl->interrupter = std::function<void()>{};
+                pimpl->interrupter = nullptr;
                 throw trial::iofiber::fiber_interrupted();
             }
         }
@@ -995,6 +997,7 @@ public:
             if (token != pimpl->resume_token)
                 return;
 
+            pimpl->interrupter = nullptr;
             *this->args = std::forward_as_tuple(args...);
             pimpl->coro = std::move(pimpl->coro).resume();
         }
@@ -1006,6 +1009,7 @@ public:
             if (token != pimpl->resume_token)
                 return;
 
+            pimpl->interrupter = nullptr;
             *this->args = std::forward<T>(arg);
             pimpl->coro = std::move(pimpl->coro).resume();
         }

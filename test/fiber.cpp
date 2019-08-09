@@ -744,6 +744,26 @@ BOOST_AUTO_TEST_CASE(auto_custom_interrupter_with_retval_no_interrupt)
                boost::test_tools::per_element());
 }
 
+BOOST_AUTO_TEST_CASE(consume_auto_custom_interrupter)
+{
+    // An interrupter for one operation should not leak to be chosen as the
+    // interrupter of another operation. If operation finishes successfully and
+    // it is not interrupted, the custom interrupter should not be used in the
+    // next operation.
+    asio::io_context ctx;
+
+    spawn(ctx, [&](fiber::this_fiber this_fiber) {
+        asio::steady_timer timer{this_fiber.get_executor().context()};
+        timer.expires_from_now(std::chrono::milliseconds(1));
+
+        BOOST_REQUIRE(!this_fiber.interrupter);
+        this_fiber(timer, &asio::steady_timer::async_wait);
+        BOOST_REQUIRE(!this_fiber.interrupter);
+    }).detach();
+
+    ctx.run();
+}
+
 BOOST_AUTO_TEST_CASE(disable_interrupt_on_yield)
 {
     asio::io_context ctx;
