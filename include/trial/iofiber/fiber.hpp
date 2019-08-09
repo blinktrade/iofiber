@@ -269,23 +269,31 @@ public:
     // }}}
 };
 
-class service_aborted: public boost::asio::io_context::service
+template<class T = void>
+class service_aborted: public boost::asio::execution_context::service
 {
 public:
-    using key_type = service_aborted;
+    using key_type = service_aborted<T>;
 
-    explicit service_aborted(boost::asio::io_context& ctx)
-        : boost::asio::io_context::service(ctx)
+    explicit service_aborted(boost::asio::execution_context& ctx)
+        : boost::asio::execution_context::service(ctx)
     {}
 
-    static boost::asio::io_context::id id;
+    static boost::asio::execution_context::id id;
+
+private:
+    virtual void shutdown() noexcept override {}
 };
+
+template<class T>
+boost::asio::execution_context::id service_aborted<T>::id;
 
 } // namespace detail {
 
-inline bool context_aborted(boost::asio::io_context& ctx)
+template<class ExecutionContext>
+bool context_aborted(ExecutionContext& ctx)
 {
-    return boost::asio::has_service<detail::service_aborted>(ctx);
+    return boost::asio::has_service<detail::service_aborted<>>(ctx);
 }
 
 template<class Strand>
@@ -312,7 +320,7 @@ public:
     ~basic_fiber()
     {
         if (joinable_state == joinable_type::JOINABLE) {
-            boost::asio::use_service<detail::service_aborted>(
+            boost::asio::use_service<detail::service_aborted<>>(
                 pimpl_->executor.context());
             pimpl_->executor.context().stop();
         }
@@ -321,7 +329,7 @@ public:
     basic_fiber& operator=(basic_fiber&& o)
     {
         if (joinable_state == joinable_type::JOINABLE) {
-            boost::asio::use_service<detail::service_aborted>(
+            boost::asio::use_service<detail::service_aborted<>>(
                 pimpl_->executor.context());
             pimpl_->executor.context().stop();
             throw std::logic_error{"fiber handle leak"};
