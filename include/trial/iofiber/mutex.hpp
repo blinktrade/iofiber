@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 BlinkTrade, Inc.
+/* Copyright (c) 2018, 2019 BlinkTrade, Inc.
 
    Distributed under the Boost Software License, Version 1.0. (See accompanying
    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt) */
@@ -64,18 +64,35 @@ public:
         // TODO: inter-strand communication
         assert(this_fiber.get_executor() == executor);
 
-        boost::asio::async_completion<fiber::this_fiber, void()>
-            init{this_fiber};
-
-        // TODO: think about flow with interruptions enabled
-        fiber::this_fiber::disable_interruption di(this_fiber);
-        boost::ignore_unused(di);
+        this_fiber.yield();
 
         if (locked) {
-            pending.emplace_back(init.completion_handler);
-            init.result.get();
-            locked = true;
-            return;
+            auto pimpl = this_fiber.pimpl_;
+            this_fiber.interrupter = [pimpl,this]() {
+                auto it = pending.begin();
+                for (; it != pending.end() ; ++it) {
+                    if (*it == pimpl) {
+                        break;
+                    }
+                }
+                if (it != pending.end()) {
+                    pending.erase(it);
+                    pimpl->executor.post([pimpl]() {
+                        pimpl->coro = std::move(pimpl->coro).resume_with(
+                            [pimpl](boost::context::fiber&& ctx)
+                            -> boost::context::fiber {
+                                pimpl->coro = std::move(ctx);
+                                throw fiber_interrupted{};
+                                return {};
+                            }
+                        );
+                    }, std::allocator<void>{});
+                }
+            };
+
+            pending.emplace_back(pimpl);
+            pimpl->coro = std::move(pimpl->coro).resume();
+            this_fiber.interrupter = nullptr;
         }
 
         locked = true;
@@ -93,15 +110,19 @@ public:
         if (pending.size() == 0)
             return;
 
-        std::function<void()> next(std::move(pending.back()));
+        auto next{pending.back()};
         pending.pop_back();
-        executor.post(std::move(next), std::allocator<void>{});
+        next->executor.post([next]() {
+            next->coro = std::move(next->coro).resume();
+        }, std::allocator<void>{});
     }
 
 private:
     executor_type executor;
     bool locked;
-    std::vector<std::function<void()>> pending;
+    // TODO: should we have to resort to private fiber API to implement sync
+    // primitives?
+    std::vector<std::shared_ptr<fiber::this_fiber::impl>> pending;
 };
 
 using mutex = basic_mutex<boost::asio::io_context::strand>;
