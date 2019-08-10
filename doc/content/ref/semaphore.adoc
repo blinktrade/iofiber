@@ -57,7 +57,9 @@ void wait_for(duration timeout_duration, fiber::this_fiber this_fiber);
 
 Wait for a fiber to `post()` on this semaphore.
 
-IMPORTANT: This function disables interruption until operation completes.
+IMPORTANT: The interruption point for this function right now is not efficient
+with respect to responsiveness. It'll take the whole timeout (or the consumption
+of one token from `get_value()`) before the interruption request is delivered.
 
 === `get_value()`
 

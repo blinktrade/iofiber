@@ -67,9 +67,8 @@ public:
             fiber::this_fiber, void(boost::system::error_code)
         > init{this_fiber};
 
-        // TODO: think about flow with interruptions enabled
+        // TODO: improve interruption support
         fiber::this_fiber::disable_interruption di(this_fiber);
-        boost::ignore_unused(di);
 
         boost::asio::steady_timer timer{executor.context()};
         timer.expires_from_now(timeout_duration);
@@ -94,6 +93,11 @@ public:
         );
 
         init.result.get();
+
+        // dump interruption point
+        fiber::this_fiber::restore_interruption ri{di};
+        boost::ignore_unused(ri);
+        this_fiber.yield();
     }
 
     int get_value() const
