@@ -297,7 +297,7 @@ bool context_aborted(ExecutionContext& ctx)
 }
 
 template<class Strand>
-class basic_fiber
+class [[nodiscard]] basic_fiber
 {
 public:
     static_assert(detail::is_strand<Strand>::value, "");

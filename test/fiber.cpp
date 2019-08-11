@@ -1006,9 +1006,9 @@ BOOST_AUTO_TEST_CASE(terminate_service2)
 
     bool ran = false;
 
-    spawn(ctx, [&](fiber::this_fiber /*this_fiber*/) {
+    boost::ignore_unused(spawn(ctx, [&](fiber::this_fiber /*this_fiber*/) {
         ran = true;
-    });
+    }));
 
     ctx.run();
 
