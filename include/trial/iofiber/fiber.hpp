@@ -426,7 +426,7 @@ public:
                         return {};
                     }
                 );
-            });
+            }, std::allocator<void>{});
         }
     }
 
@@ -472,7 +472,7 @@ private:
                     return;
 
                 active_coro->coro = std::move(active_coro->coro).resume();
-            });
+            }, std::allocator<void>{});
         };
         active_coro->coro = std::move(active_coro->coro).resume();
     }

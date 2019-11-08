@@ -27,6 +27,9 @@ macro(add_test_target target target_SRC)
   set_property(TARGET "${target}" PROPERTY CXX_STANDARD 11)
   set_property(TARGET "${target}" PROPERTY CXX_STANDARD_REQUIRED ON)
 
+  target_compile_definitions("${target}"
+    PRIVATE BOOST_ASIO_NO_DEPRECATED BOOST_ASIO_NO_DYNAMIC_BUFFER_V1)
+
   target_link_libraries("${target}"
     ${CMAKE_THREAD_LIBS_INIT}
     ${Boost_SYSTEM_LIBRARY}

@@ -71,7 +71,7 @@ public:
         fiber::this_fiber::disable_interruption di(this_fiber);
 
         boost::asio::steady_timer timer{executor.context()};
-        timer.expires_from_now(timeout_duration);
+        timer.expires_after(timeout_duration);
         pending.emplace_front([&timer]() { return timer.cancel() > 0; });
         auto it = pending.begin();
 

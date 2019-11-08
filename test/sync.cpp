@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_CASE(mutex) {
         mutex.lock(this_fiber);
         output.push_back(101);
 
-        timer.expires_from_now(std::chrono::seconds(3));
+        timer.expires_after(std::chrono::seconds(3));
         timer.async_wait(this_fiber);
         mutex.unlock();
         // Testing that fibers aren't interleaved and {101, 102} stick together.
@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE(mutex) {
     auto w2 = [&](iofiber::fiber::this_fiber this_fiber) {
         boost::asio::steady_timer timer{ios};
 
-        timer.expires_from_now(std::chrono::seconds(1));
+        timer.expires_after(std::chrono::seconds(1));
         timer.async_wait(this_fiber);
         mutex.lock(this_fiber);
         output.push_back(201);
@@ -58,7 +58,7 @@ BOOST_AUTO_TEST_CASE(mutex) {
     auto w3 = [&](iofiber::fiber::this_fiber this_fiber) {
         boost::asio::steady_timer timer{ios};
 
-        timer.expires_from_now(std::chrono::seconds(2));
+        timer.expires_after(std::chrono::seconds(2));
         timer.async_wait(this_fiber);
         mutex.lock(this_fiber);
         output.push_back(301);
@@ -67,7 +67,7 @@ BOOST_AUTO_TEST_CASE(mutex) {
         // IOW, we `post` pending tasks instead jumping to them.
         output.push_back(302);
 
-        timer.expires_from_now(std::chrono::seconds(1));
+        timer.expires_after(std::chrono::seconds(1));
         timer.async_wait(this_fiber);
         mutex.lock(this_fiber);
         output.push_back(311);
@@ -104,7 +104,7 @@ BOOST_AUTO_TEST_CASE(barrier) {
 
     auto w1 = [&](iofiber::fiber::this_fiber this_fiber) {
         boost::asio::steady_timer timer{ios};
-        timer.expires_from_now(std::chrono::seconds(1));
+        timer.expires_after(std::chrono::seconds(1));
         timer.async_wait(this_fiber);
 
         BOOST_REQUIRE(values[0] == false);
@@ -121,7 +121,7 @@ BOOST_AUTO_TEST_CASE(barrier) {
 
     auto w2 = [&](iofiber::fiber::this_fiber this_fiber) {
         boost::asio::steady_timer timer{ios};
-        timer.expires_from_now(std::chrono::seconds(2));
+        timer.expires_after(std::chrono::seconds(2));
         timer.async_wait(this_fiber);
 
         BOOST_REQUIRE(values[0] == true);
@@ -138,7 +138,7 @@ BOOST_AUTO_TEST_CASE(barrier) {
 
     auto w3 = [&](iofiber::fiber::this_fiber this_fiber) {
         boost::asio::steady_timer timer{ios};
-        timer.expires_from_now(std::chrono::seconds(3));
+        timer.expires_after(std::chrono::seconds(3));
         timer.async_wait(this_fiber);
 
         BOOST_REQUIRE(values[0] == true);
@@ -187,7 +187,7 @@ BOOST_AUTO_TEST_CASE(semaphore) {
         sem.reset();
 
         BOOST_REQUIRE_EQUAL(sem.get_value(), 0);
-    });
+    }, std::allocator<void>{});
     ios.run();
     ios.restart();
 
@@ -206,7 +206,7 @@ BOOST_AUTO_TEST_CASE(semaphore) {
 
         // #3
 
-        timer.expires_from_now(std::chrono::seconds(1));
+        timer.expires_after(std::chrono::seconds(1));
         timer.async_wait(this_fiber);
         sem.post();
 
@@ -222,7 +222,7 @@ BOOST_AUTO_TEST_CASE(semaphore) {
         boost::asio::steady_timer timer{ios};
 
         // #1
-        timer.expires_from_now(std::chrono::seconds(1));
+        timer.expires_after(std::chrono::seconds(1));
         timer.async_wait(this_fiber);
 
         BOOST_REQUIRE(sem.get_value() == 1);

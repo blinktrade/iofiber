@@ -190,7 +190,7 @@ BOOST_AUTO_TEST_CASE(inter_strand_join2)
     auto f1 = spawn(strand1, [&](fiber::this_fiber this_fiber) {
         BOOST_REQUIRE_EQUAL(std::this_thread::get_id(), tid1);
         asio::steady_timer timer{this_fiber.get_executor().context()};
-        timer.expires_from_now(std::chrono::seconds(1));
+        timer.expires_after(std::chrono::seconds(1));
         timer.async_wait(this_fiber);
         events.push_back(0);
     });
@@ -239,7 +239,7 @@ BOOST_AUTO_TEST_CASE(inter_strand_join3)
     spawn(strand2, [&](fiber::this_fiber this_fiber) {
         BOOST_REQUIRE_EQUAL(std::this_thread::get_id(), tid2);
         asio::steady_timer timer{this_fiber.get_executor().context()};
-        timer.expires_from_now(std::chrono::seconds(1));
+        timer.expires_after(std::chrono::seconds(1));
         timer.async_wait(this_fiber);
         f1.join(this_fiber);
         BOOST_REQUIRE(!f1.interruption_caught());
@@ -355,7 +355,7 @@ BOOST_AUTO_TEST_CASE(token_preserve_executor)
 
     spawn(ctx, [&](fiber::this_fiber this_fiber) {
         asio::steady_timer timer{this_fiber.get_executor().context()};
-        timer.expires_from_now(std::chrono::milliseconds(1));
+        timer.expires_after(std::chrono::milliseconds(1));
         BOOST_REQUIRE(this_fiber.get_executor().running_in_this_thread());
         timer.async_wait(this_fiber);
         BOOST_REQUIRE(this_fiber.get_executor().running_in_this_thread());
@@ -457,7 +457,7 @@ BOOST_AUTO_TEST_CASE(same_strand_interrupt_on_join)
 
     auto f1 = spawn(strand, [&](fiber::this_fiber this_fiber) {
         asio::steady_timer timer{this_fiber.get_executor().context()};
-        timer.expires_from_now(std::chrono::seconds(1));
+        timer.expires_after(std::chrono::seconds(1));
         timer.async_wait(this_fiber);
         events.push_back(0);
     });
@@ -494,7 +494,7 @@ BOOST_AUTO_TEST_CASE(same_strand_interrupt_on_join2)
 
     auto f1 = spawn(strand, [&](fiber::this_fiber this_fiber) {
         asio::steady_timer timer{this_fiber.get_executor().context()};
-        timer.expires_from_now(std::chrono::seconds(2));
+        timer.expires_after(std::chrono::seconds(2));
         timer.async_wait(this_fiber);
         events.push_back(0);
     });
@@ -516,7 +516,7 @@ BOOST_AUTO_TEST_CASE(same_strand_interrupt_on_join2)
 
     spawn(strand, [&](fiber::this_fiber this_fiber) {
         asio::steady_timer timer{this_fiber.get_executor().context()};
-        timer.expires_from_now(std::chrono::seconds(1));
+        timer.expires_after(std::chrono::seconds(1));
         timer.async_wait(this_fiber);
         f2.interrupt();
         f2.join(this_fiber);
@@ -538,7 +538,7 @@ BOOST_AUTO_TEST_CASE(same_strand_interrupt_on_token)
 
     auto f1 = spawn(strand, [&](fiber::this_fiber this_fiber) {
         asio::steady_timer timer{this_fiber.get_executor().context()};
-        timer.expires_from_now(std::chrono::seconds(1));
+        timer.expires_after(std::chrono::seconds(1));
         timer.async_wait(this_fiber);
         events.push_back(0);
     });
@@ -565,11 +565,11 @@ BOOST_AUTO_TEST_CASE(same_strand_interrupt_on_token2)
     auto f1 = spawn(strand, [&](fiber::this_fiber this_fiber) {
         asio::steady_timer timer{this_fiber.get_executor().context()};
         try {
-            timer.expires_from_now(std::chrono::seconds(1));
+            timer.expires_after(std::chrono::seconds(1));
             timer.async_wait(this_fiber);
             events.push_back(0);
         } catch (const fiber_interrupted&) {
-            timer.expires_from_now(std::chrono::seconds(1));
+            timer.expires_after(std::chrono::seconds(1));
             timer.async_wait(this_fiber);
             events.push_back(2);
         }
@@ -596,7 +596,7 @@ BOOST_AUTO_TEST_CASE(same_strand_custom_interrupter)
 
     auto f1 = spawn(strand, [&](fiber::this_fiber this_fiber) {
         asio::steady_timer timer{this_fiber.get_executor().context()};
-        timer.expires_from_now(std::chrono::seconds(1));
+        timer.expires_after(std::chrono::seconds(1));
         this_fiber.interrupter = [&timer]() { timer.cancel(); };
         try {
             timer.async_wait(this_fiber);
@@ -629,7 +629,7 @@ BOOST_AUTO_TEST_CASE(auto_custom_interrupter)
 
     auto f1 = spawn(strand, [&](fiber::this_fiber this_fiber) {
         asio::steady_timer timer{this_fiber.get_executor().context()};
-        timer.expires_from_now(std::chrono::seconds(1));
+        timer.expires_after(std::chrono::seconds(1));
         this_fiber(timer, &asio::steady_timer::async_wait);
         events.push_back(0);
     });
@@ -656,7 +656,7 @@ BOOST_AUTO_TEST_CASE(auto_custom_interrupter_without_exception)
     auto f1 = spawn(strand, [&](fiber::this_fiber this_fiber) {
         boost::system::error_code ec;
         asio::steady_timer timer{this_fiber.get_executor().context()};
-        timer.expires_from_now(std::chrono::seconds(1));
+        timer.expires_after(std::chrono::seconds(1));
         this_fiber[ec](timer, &asio::steady_timer::async_wait);
         events.push_back(0);
     });
@@ -754,7 +754,7 @@ BOOST_AUTO_TEST_CASE(consume_auto_custom_interrupter)
 
     spawn(ctx, [&](fiber::this_fiber this_fiber) {
         asio::steady_timer timer{this_fiber.get_executor().context()};
-        timer.expires_from_now(std::chrono::milliseconds(1));
+        timer.expires_after(std::chrono::milliseconds(1));
 
         BOOST_REQUIRE(!this_fiber.interrupter);
         this_fiber(timer, &asio::steady_timer::async_wait);
@@ -833,7 +833,7 @@ BOOST_AUTO_TEST_CASE(disable_interrupt_on_join)
 
     auto f1 = spawn(strand, [&](fiber::this_fiber this_fiber) {
         asio::steady_timer timer{this_fiber.get_executor().context()};
-        timer.expires_from_now(std::chrono::seconds(2));
+        timer.expires_after(std::chrono::seconds(2));
         timer.async_wait(this_fiber);
         events.push_back(0);
     });
@@ -848,7 +848,7 @@ BOOST_AUTO_TEST_CASE(disable_interrupt_on_join)
 
     spawn(strand, [&](fiber::this_fiber this_fiber) {
         asio::steady_timer timer{this_fiber.get_executor().context()};
-        timer.expires_from_now(std::chrono::seconds(1));
+        timer.expires_after(std::chrono::seconds(1));
         timer.async_wait(this_fiber);
         f2.interrupt();
         f2.join(this_fiber);
@@ -870,7 +870,7 @@ BOOST_AUTO_TEST_CASE(disable_interrupt_on_join2)
 
     auto f1 = spawn(strand, [&](fiber::this_fiber this_fiber) {
         asio::steady_timer timer{this_fiber.get_executor().context()};
-        timer.expires_from_now(std::chrono::seconds(2));
+        timer.expires_after(std::chrono::seconds(2));
         timer.async_wait(this_fiber);
         events.push_back(0);
     });
@@ -890,7 +890,7 @@ BOOST_AUTO_TEST_CASE(disable_interrupt_on_join2)
 
     spawn(strand, [&](fiber::this_fiber this_fiber) {
         asio::steady_timer timer{this_fiber.get_executor().context()};
-        timer.expires_from_now(std::chrono::seconds(1));
+        timer.expires_after(std::chrono::seconds(1));
         timer.async_wait(this_fiber);
         f2.interrupt();
         f2.join(this_fiber);
@@ -914,7 +914,7 @@ BOOST_AUTO_TEST_CASE(disable_interrupt_on_token)
         fiber::this_fiber::disable_interruption di(this_fiber);
         boost::ignore_unused(di);
         asio::steady_timer timer{this_fiber.get_executor().context()};
-        timer.expires_from_now(std::chrono::seconds(1));
+        timer.expires_after(std::chrono::seconds(1));
         timer.async_wait(this_fiber);
         events.push_back(0);
     });
@@ -941,13 +941,13 @@ BOOST_AUTO_TEST_CASE(disable_interrupt_on_token2)
     auto f1 = spawn(strand, [&](fiber::this_fiber this_fiber) {
         asio::steady_timer timer{this_fiber.get_executor().context()};
         try {
-            timer.expires_from_now(std::chrono::seconds(1));
+            timer.expires_after(std::chrono::seconds(1));
             timer.async_wait(this_fiber);
             events.push_back(0);
         } catch (const fiber_interrupted&) {
             fiber::this_fiber::disable_interruption di(this_fiber);
             boost::ignore_unused(di);
-            timer.expires_from_now(std::chrono::seconds(1));
+            timer.expires_after(std::chrono::seconds(1));
             timer.async_wait(this_fiber);
             events.push_back(2);
         }
@@ -974,7 +974,7 @@ BOOST_AUTO_TEST_CASE(call_interrupt_on_invalid_fiber)
 
     auto f = spawn(ctx, [&](fiber::this_fiber this_fiber) {
         asio::steady_timer timer{this_fiber.get_executor().context()};
-        timer.expires_from_now(std::chrono::seconds(1));
+        timer.expires_after(std::chrono::seconds(1));
         timer.async_wait(this_fiber);
         f_finished = true;
     });
