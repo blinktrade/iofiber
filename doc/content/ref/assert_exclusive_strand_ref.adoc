@@ -36,11 +36,37 @@ suggestion that makes every coroutined suspension code equally hard to read. I
 don't know which `await` directives are safe or not. I'm not the writer of these
 codes. How can I know what is a safe access? The information isn't there until I
 fully understand the code and the surrounding context (and productivity is lost
-in the process).
+in the process). This has been observed before:
 
-An alternative is proposed here. Instead making `await` special, we make access
-to shared variables special. If a variable must not be modified/read by
-concurrent fibers in a critical section, we document our expectation using
+[quote, Mike Bayer, '<https://techspot.zzzeek.org/2015/02/15/asynchronous-python-and-databases/>']
+____
+Where now, within the scope of the process we're in, we know that we are only
+allowing anything else to happen at the bottom, when we call `yield from
+server.update_balances()`. There is no chance that any other concurrent calls to
+`payer.withdraw()` can occur while we're in the function's body and have not yet
+reached the `server.update_balances()` call.
+
+He then makes a clear point as to why even the implicit gevent-style async isn't
+sufficient. Because with the above program, the fact that `payee.deposit()` and
+`payer.withdraw()` do not do a `yield from`, we are assured that no IO might
+occur in future versions of these calls which would break into our scheduling
+and potentially run another `transfer()` before ours is complete.
+
+(As an aside, I'm not actually sure, in the realm of "we had to type `yield
+from` and that's how we stay aware of what's going on", why the `yield from`
+needs to be a real, structural part of the program and not just, for example, a
+magic comment consumed by a gevent/eventlet-integrated linter that tests
+callstacks for IO and verifies that the corresponding source code has been
+annotated with special comments, as that would have the identical effect without
+impacting any libraries outside of that system and without incurring all the
+Python performance overhead of explicit async. But that's a different topic.)
+____
+
+I only found out about this opinion much later, but that's basically what is
+proposed here. Real world usage of this async style led me to the same
+conclusion. Instead making `await` special, we make access to shared variables
+special. If a variable must not be modified/read by concurrent fibers in a
+critical section, we document our expectation using
 `assert_exclusive_strand_ref<T>`. It works just like an `assert()`. It won't add
 runtime penalty and we actually encode the knowledge of our expectation into the
 code.
@@ -169,7 +195,7 @@ different patterns not similar to the previous one and so far it has been a good
 fit.
 
 A nice collateral effect is it encodes the _reason_ why/when a fiber can't
-suspend. It definitively made the code much easier to read and more
+suspend. It definitively made the code much easier to follow and more
 maintainable.
 
 A `void` specialization is provided to cover smaller blocks where we can go
