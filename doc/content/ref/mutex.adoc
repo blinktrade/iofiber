@@ -44,6 +44,8 @@ void lock(fiber::this_fiber this_fiber)
 Locks the mutex. If another fiber has already locked the mutex, a call to
 `lock()` will suspend the current fiber until the lock is acquired.
 
+NOTE: `lock()` is a suspension point, but it never throws `fiber_interrupted`.
+
 === `unlock()`
 
 [source,cpp]

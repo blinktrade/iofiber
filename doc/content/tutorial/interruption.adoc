@@ -184,19 +184,36 @@ for fibers are:
 * Boost.Asio's `async_*` functions.
 * `this_fiber.yield()`.
 * `fiber::join(this_fiber)`.
-* Synchronization primitives such as mutexes and semaphores might suspend your
-  fiber when you try to acquire a resource and it isn't immediately
-  available. Refer to their documentation to check the adopted behaviour.
 
 Any functions that are compositions of these functions will also be functions
 that serve as suspension points and might throw `fiber_interrupted`.
+
+[IMPORTANT]
+====
+`mutex::lock()` is a suspension point, but it is not an interruption point. This
+is by-design. The primary problem solved by interruption requests is freeing
+fibers stalled in operations that might never finish, not “recovering” fibers on
+a deadlock. Code your programs correctly.
+
+On the other hand, `condition_variable::wait()` might be associated with
+external events so it *is* an interruption point. Refer to its documentation for
+more details.
+
+It follows POSIX design.
+====
 
 Use `this_fiber.yield()` if you want to create a suspension point so that a
 fiber that is otherwise executing code that contains no suspension points will
 respond to an interruption request.
 
-NOTE: Although `this_fiber.yield()` is semantically closer to POSIX's
-`sched_yield()`, you can use it to achieve the effects of POSIX's
-`pthread_testcancel()`.
+[NOTE]
+====
+Although `this_fiber.yield()` is semantically closer to POSIX's `sched_yield()`,
+you can use it to achieve the effects of POSIX's `pthread_testcancel()`.
+
+It diverges from POSIX because the {cpp} programmer already has to deal with
+RAII and “unexpected” exceptions won't fail to clean resources as it'd happen to
+the C user who “forgot” to manage resources using `pthread_cleanup_push()`.
+====
 
 IMPORTANT: `fiber::interrupt()` is guaranteed to *NOT* be an interruption point.

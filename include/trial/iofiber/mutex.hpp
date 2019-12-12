@@ -67,32 +67,11 @@ public:
         this_fiber.yield();
 
         if (locked) {
-            auto pimpl = this_fiber.pimpl_;
-            this_fiber.interrupter = [pimpl,this]() {
-                auto it = pending.begin();
-                for (; it != pending.end() ; ++it) {
-                    if (*it == pimpl) {
-                        break;
-                    }
-                }
-                if (it != pending.end()) {
-                    pending.erase(it);
-                    pimpl->executor.post([pimpl]() {
-                        pimpl->coro = std::move(pimpl->coro).resume_with(
-                            [pimpl](boost::context::fiber&& ctx)
-                            -> boost::context::fiber {
-                                pimpl->coro = std::move(ctx);
-                                throw fiber_interrupted{};
-                                return {};
-                            }
-                        );
-                    }, std::allocator<void>{});
-                }
-            };
-
+            fiber::this_fiber::disable_interruption di(this_fiber);
+            boost::ignore_unused(di);
+            auto& pimpl = this_fiber.pimpl_;
             pending.emplace_back(pimpl);
             pimpl->coro = std::move(pimpl->coro).resume();
-            this_fiber.interrupter = nullptr;
         }
 
         locked = true;
@@ -120,8 +99,6 @@ public:
 private:
     executor_type executor;
     bool locked;
-    // TODO: should we have to resort to private fiber API to implement sync
-    // primitives?
     std::vector<std::shared_ptr<fiber::this_fiber::impl>> pending;
 };
 

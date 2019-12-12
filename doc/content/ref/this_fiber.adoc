@@ -217,6 +217,10 @@ NOTE: It's only useful to modify this variable for IO requests (i.e. `async_*`
 functions) as the default interrupter will do fine for `this_fiber.yield()`,
 `fib.join(this_fiber)` and other synchronization techniques shown here.
 
+Always filling a custom interrupter is also the only you can have a robust
+program that never discards the result of an operation whose side-effects
+already occurred.
+
 .See also
 
 * <<operator_call,`operator()`>>.
