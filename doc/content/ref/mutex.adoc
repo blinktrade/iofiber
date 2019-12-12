@@ -10,6 +10,17 @@ class basic_mutex;
 using mutex = basic_mutex<boost::asio::io_context::strand>;
 ----
 
+As in Boost.Fiber:
+
+[quote, '<https://www.boost.org/doc/libs/1_71_0/libs/fiber/doc/html/fiber/synchronization.html>']
+____
+[...] synchronization objects can neither be moved nor copied. A synchronization
+object acts as a mutually-agreed rendezvous point between different fibers. If
+such an object were copied somewhere else, the new copy would have no
+consumers. If such an object were _moved_ somewhere else, leaving the original
+instance in an unspecified state, existing consumers would behave strangely.
+____
+
 WARNING: https://github.com/blinktrade/iofiber/issues/4[Right now the
 implementation only works to synchronize among fibers running in the same
 strand].

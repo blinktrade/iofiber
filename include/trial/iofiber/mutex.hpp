@@ -54,6 +54,9 @@ public:
         , locked(false)
     {}
 
+    basic_mutex(const basic_mutex&) = delete;
+    basic_mutex& operator=(const basic_mutex&) = delete;
+
     executor_type get_executor() const
     {
         return executor;
