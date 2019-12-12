@@ -23,7 +23,8 @@ public:
     class guard
     {
     public:
-        guard(basic_mutex<Strand> &mutex, fiber::this_fiber this_fiber)
+        guard(basic_mutex<Strand> &mutex,
+              typename basic_fiber<Strand>::this_fiber this_fiber)
             : mutex(&mutex)
         {
             mutex.lock(this_fiber);
@@ -62,7 +63,7 @@ public:
         return executor;
     }
 
-    void lock(fiber::this_fiber this_fiber)
+    void lock(typename basic_fiber<Strand>::this_fiber this_fiber)
     {
         // TODO: inter-strand communication
         assert(this_fiber.get_executor() == executor);
@@ -70,7 +71,8 @@ public:
         this_fiber.yield();
 
         if (locked) {
-            fiber::this_fiber::disable_interruption di(this_fiber);
+            typename basic_fiber<Strand>::this_fiber::disable_interruption di(
+                this_fiber);
             boost::ignore_unused(di);
             auto& pimpl = this_fiber.pimpl_;
             pending.emplace_back(pimpl);
@@ -102,7 +104,9 @@ public:
 private:
     executor_type executor;
     bool locked;
-    std::vector<std::shared_ptr<fiber::this_fiber::impl>> pending;
+    std::vector<std::shared_ptr<
+        typename basic_fiber<Strand>::this_fiber::impl
+    >> pending;
 };
 
 using mutex = basic_mutex<boost::asio::io_context::strand>;
