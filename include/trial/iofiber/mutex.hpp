@@ -65,15 +65,52 @@ public:
 
     void lock(typename basic_fiber<Strand>::this_fiber this_fiber)
     {
-        // TODO: inter-strand communication
-        assert(this_fiber.get_executor() == executor);
+        typename basic_fiber<Strand>::this_fiber::disable_interruption di(
+            this_fiber);
+        boost::ignore_unused(di);
 
-        this_fiber.yield();
+        assert(this_fiber.get_executor().running_in_this_thread());
+        if (this_fiber.get_executor() == executor)
+            return same_strand_lock(this_fiber);
 
+        auto& pimpl = this_fiber.pimpl_;
+        pimpl->executor.defer([pimpl,this]() {
+            executor.dispatch([pimpl,this] {
+                if (locked) {
+                    pending.emplace_back(pimpl);
+                    return;
+                }
+
+                locked = true;
+                pimpl->executor.post([pimpl]() {
+                    pimpl->coro = std::move(pimpl->coro).resume();
+                }, std::allocator<void>{});
+            }, std::allocator<void>{});
+        }, std::allocator<void>{});
+        pimpl->coro = std::move(pimpl->coro).resume();
+    }
+
+    void unlock()
+    {
+        executor.dispatch([this]() {
+            assert(locked);
+            locked = false;
+
+            if (pending.size() == 0)
+                return;
+
+            auto next{pending.back()};
+            pending.pop_back();
+            next->executor.post([next]() {
+                next->coro = std::move(next->coro).resume();
+            }, std::allocator<void>{});
+        }, std::allocator<void>{});
+    }
+
+private:
+    void same_strand_lock(typename basic_fiber<Strand>::this_fiber this_fiber)
+    {
         if (locked) {
-            typename basic_fiber<Strand>::this_fiber::disable_interruption di(
-                this_fiber);
-            boost::ignore_unused(di);
             auto& pimpl = this_fiber.pimpl_;
             pending.emplace_back(pimpl);
             pimpl->coro = std::move(pimpl->coro).resume();
@@ -82,26 +119,6 @@ public:
         locked = true;
     }
 
-    void unlock()
-    {
-        assert(locked);
-
-        // TODO: inter-strand communication
-        assert(executor.running_in_this_thread());
-
-        locked = false;
-
-        if (pending.size() == 0)
-            return;
-
-        auto next{pending.back()};
-        pending.pop_back();
-        next->executor.post([next]() {
-            next->coro = std::move(next->coro).resume();
-        }, std::allocator<void>{});
-    }
-
-private:
     executor_type executor;
     bool locked;
     std::vector<std::shared_ptr<

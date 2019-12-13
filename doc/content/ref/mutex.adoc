@@ -2,6 +2,8 @@
 title = "mutex"
 +++
 
+:_:
+
 [source,cpp]
 ----
 template<class Strand>
@@ -20,10 +22,6 @@ such an object were copied somewhere else, the new copy would have no
 consumers. If such an object were _moved_ somewhere else, leaving the original
 instance in an unspecified state, existing consumers would behave strangely.
 ____
-
-WARNING: https://github.com/blinktrade/iofiber/issues/4[Right now the
-implementation only works to synchronize among fibers running in the same
-strand].
 
 == Member-functions
 
@@ -49,19 +47,23 @@ Returns the strand associated with this mutex.
 
 [source,cpp]
 ----
-void lock(fiber::this_fiber this_fiber)
+void lock(fiber::this_fiber this_fiber);
 ----
 
 Locks the mutex. If another fiber has already locked the mutex, a call to
 `lock()` will suspend the current fiber until the lock is acquired.
 
-NOTE: `lock()` is a suspension point, but it never throws `fiber_interrupted`.
+NOTE: `lock()` is a suspension point, but it never throws
+`fiber_interrupted`. It is not an interruption point.
+
+NOTE: `lock()` uses dispatch semantic for better performance. If the lock can be
+acquired without yielding to another fiber, so it'll be done.
 
 === `unlock()`
 
 [source,cpp]
 ----
-void unlock()
+void unlock();
 ----
 
 Unlocks the mutex.
@@ -111,3 +113,46 @@ private:
     basic_mutex<Strand> *mutex;
 };
 ----
+
+== Post vs dispatch
+
+Post semantics mean that the operation won't start immediately. Instead it'll
+always be scheduled through the underlying execution context. A simple
+illustration of this concept is the `spawn()` function.
+
+[source,cpp]
+----
+void start(std::vector<int>& coll)
+{
+    for (auto e: coll) {
+        spawn([&]() { worker(coll, e); });
+    }
+}
+----
+
+Were the function passed to `spawn()` to execute immediately (dispatch
+semantics), the iterators involved in the for-loop could be invalidated by some
+of the workers mutating `coll`. So post semantics guarantee a
+“link:https://exploringjs.com/es6/ch_async.html#_run-to-completion-semantics[run-to-completion]”
+and tend to be adopted as the default execution policy because it tends to be
+safer. Even if the iterator invalidation problem didn't exist because you
+decided to adopt a memory-safe and pass:[*]-safe language, other subtle and
+severe concurrency bugs such as starvation would still haunt you.
+
+The problem is that dispatch semantic will run code somewhat arbitrary to the
+function you're coding before a suspension point is reached. It works virtually
+as a new suspension point (whose pool of tasks from which the scheduler chooses
+the new fiber is a special limited set). `mutex::unlock()` isn't a suspension
+point and the user doesn't expect it to run arbitrary code so it'd be unsafe for
+`mutex::unlock()` to use dispatch semantics by immediately executing the next
+fiber pending on the mutex. On the other hand, `mutex::lock()` already is a
+suspension point, so it is not affected by this problem and dispatch semantics
+are fine (the dispatch semantic in the `mutex::lock()` case only mean that
+`mutex::lock()` might not yield thread control to another fiber while it
+acquires the lock).
+
+Post semantics also tend to be safer in regards to guaranteeing some level of
+fairness around IO operations. This fairness problem isn't as severe for the
+mutex case and a synchronization primitive such as mutex should actually favour
+performance so dispatch semantics fit it better (when safe, such as in the
+`mutex::lock()` case).
