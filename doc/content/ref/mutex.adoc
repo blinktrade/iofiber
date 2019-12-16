@@ -80,40 +80,6 @@ undefined.
 using executor_type = Strand;
 ----
 
-=== `guard`
-
-[source,cpp]
-----
-class guard
-{
-public:
-    guard(basic_mutex<Strand> &mutex, fiber::this_fiber this_fiber)
-        : mutex(&mutex)
-    {
-        mutex.lock(this_fiber);
-    }
-
-    guard(guard &&o)
-        : mutex(o.mutex)
-    {
-        o.mutex = nullptr;
-    }
-
-    guard(const guard &) = delete;
-
-    ~guard()
-    {
-        if (!mutex) // moved
-            return;
-
-        mutex->unlock();
-    }
-
-private:
-    basic_mutex<Strand> *mutex;
-};
-----
-
 == Post vs dispatch
 
 Post semantics mean that the operation won't start immediately. Instead it'll
@@ -156,3 +122,7 @@ fairness around IO operations. This fairness problem isn't as severe for the
 mutex case and a synchronization primitive such as mutex should actually favour
 performance so dispatch semantics fit it better (when safe, such as in the
 `mutex::lock()` case).
+
+== See also
+
+* link:../unique_lock/[`unique_lock`]

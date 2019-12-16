@@ -1,0 +1,91 @@
++++
+title = "unique_lock"
++++
+
+[source,cpp]
+----
+template<class Strand>
+class basic_unique_lock;
+
+using unique_lock = basic_unique_lock<boost::asio::io_context::strand>;
+
+template<class Strand>
+class basic_unique_lock
+{
+public:
+    basic_unique_lock(basic_mutex<Strand>& mutex,
+          typename basic_fiber<Strand>::this_fiber this_fiber)
+        : mutex_(&mutex)
+        , owns_lock_(true)
+    {
+        mutex_->lock(this_fiber);
+    }
+
+    basic_unique_lock(basic_unique_lock&& o)
+        : mutex_(o.mutex_)
+        , owns_lock_(o.owns_lock_)
+    {
+        o.mutex_ = nullptr;
+    }
+
+    basic_unique_lock& operator=(basic_unique_lock&& o)
+    {
+        if (mutex_ && owns_lock_)
+            mutex_->unlock();
+
+        mutex_ = o.mutex_;
+        owns_lock_ = o.owns_lock_;
+        o.mutex_ = nullptr;
+        return *this;
+    }
+
+    ~basic_unique_lock()
+    {
+        if (!mutex_) // moved
+            return;
+
+        if (owns_lock_)
+            mutex_->unlock();
+    }
+
+    void lock(typename basic_fiber<Strand>::this_fiber this_fiber)
+    {
+        if (!mutex_)
+            throw std::system_error{std::errc::operation_not_permitted};
+        if (owns_lock_)
+            throw std::system_error(std::errc::resource_deadlock_would_occur);
+
+        mutex_->lock(this_fiber);
+        owns_lock_ = true;
+    }
+
+    void unlock()
+    {
+        if (!mutex_ || !owns_lock_)
+            throw std::system_error{std::errc::operation_not_permitted};
+
+        mutex_->unlock();
+    }
+
+    basic_mutex<Strand>* release() noexcept
+    {
+        auto m = mutex_;
+        mutex_ = nullptr;
+        return m;
+    }
+
+    basic_mutex<Strand>* mutex() const noexcept
+    {
+        return mutex_;
+    }
+
+    bool owns_lock() const noexcept
+    {
+        return owns_lock_;
+    }
+
+private:
+    basic_mutex<Strand> *mutex_;
+    bool owns_lock_;
+};
+----
