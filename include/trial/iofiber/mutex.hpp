@@ -6,7 +6,7 @@
 #ifndef TRIAL_IOFIBER_MUTEX_H
 #define TRIAL_IOFIBER_MUTEX_H
 
-#include <vector>
+#include <deque>
 #include <functional>
 
 #include <trial/iofiber/fiber.hpp>
@@ -69,8 +69,8 @@ public:
             if (pending.size() == 0)
                 return;
 
-            auto next{pending.back()};
-            pending.pop_back();
+            auto next{pending.front()};
+            pending.pop_front();
             next->executor.post([next]() {
                 next->coro = std::move(next->coro).resume();
             }, std::allocator<void>{});
@@ -91,7 +91,7 @@ private:
 
     executor_type executor;
     bool locked;
-    std::vector<std::shared_ptr<
+    std::deque<std::shared_ptr<
         typename basic_fiber<Strand>::this_fiber::impl
     >> pending;
 };

@@ -82,14 +82,6 @@ BOOST_AUTO_TEST_CASE(mutex) {
 
     output.push_back(-3);
 
-    // Actually, it could be this alternative version, but then we'd remove from
-    // the beginning of the vector (an inefficient operation):
-    //
-    //std::vector<int> expected{-1, -2, 101, 102, 201, 202, 301, 302, 311, -3};
-    //
-    // You may argue that LIFO semantics would provoke starvation, but our usage
-    // patterns (maximum number of running fibers per mutex specially) allow us
-    // to rely on FIFO semantics.
-    std::vector<int> expected{-1, -2, 101, 102, 301, 302, 201, 202, 311, -3};
+    std::vector<int> expected{-1, -2, 101, 102, 201, 202, 301, 302, 311, -3};
     BOOST_REQUIRE(output == expected);
 }
