@@ -57,6 +57,7 @@ public:
                 }, std::allocator<void>{});
             }, std::allocator<void>{});
         }, std::allocator<void>{});
+        auto ex_work_guard = boost::asio::make_work_guard(pimpl->executor);
         pimpl->coro = std::move(pimpl->coro).resume();
     }
 
@@ -83,6 +84,7 @@ private:
         if (locked) {
             auto& pimpl = this_fiber.pimpl_;
             pending.emplace_back(pimpl);
+            auto ex_work_guard = boost::asio::make_work_guard(pimpl->executor);
             pimpl->coro = std::move(pimpl->coro).resume();
         }
 
