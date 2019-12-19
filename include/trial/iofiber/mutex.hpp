@@ -162,6 +162,7 @@ public:
         }
 
         mutex_->unlock();
+        owns_lock_ = false;
     }
 
     basic_mutex<Strand>* release() noexcept

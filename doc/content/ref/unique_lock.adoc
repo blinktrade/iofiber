@@ -65,6 +65,7 @@ public:
             throw std::system_error{std::errc::operation_not_permitted};
 
         mutex_->unlock();
+        owns_lock_ = false;
     }
 
     basic_mutex<Strand>* release() noexcept
