@@ -65,10 +65,11 @@ public:
     {
         executor.dispatch([this]() {
             assert(locked);
-            locked = false;
 
-            if (pending.size() == 0)
+            if (pending.size() == 0) {
+                locked = false;
                 return;
+            }
 
             auto next{pending.front()};
             pending.pop_front();
