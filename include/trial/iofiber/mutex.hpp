@@ -44,17 +44,15 @@ public:
             return same_strand_lock(this_fiber);
 
         auto& pimpl = this_fiber.pimpl_;
-        pimpl->executor.defer([pimpl,this]() {
-            executor.dispatch([pimpl,this] {
-                if (locked) {
-                    pending.emplace_back(pimpl);
-                    return;
-                }
+        executor.dispatch([pimpl,this] {
+            if (locked) {
+                pending.emplace_back(pimpl);
+                return;
+            }
 
-                locked = true;
-                pimpl->executor.post([pimpl]() {
-                    pimpl->coro = std::move(pimpl->coro).resume();
-                }, std::allocator<void>{});
+            locked = true;
+            pimpl->executor.defer([pimpl]() {
+                pimpl->coro = std::move(pimpl->coro).resume();
             }, std::allocator<void>{});
         }, std::allocator<void>{});
         auto ex_work_guard = boost::asio::make_work_guard(pimpl->executor);
