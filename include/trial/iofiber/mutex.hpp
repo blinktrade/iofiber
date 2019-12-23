@@ -35,6 +35,10 @@ public:
 
     void lock(typename basic_fiber<Strand>::this_fiber this_fiber)
     {
+#ifndef NDEBUG
+        assert(this_fiber.suspension_disallowed == 0);
+#endif // NDEBUG
+
         typename basic_fiber<Strand>::this_fiber::disable_interruption di(
             this_fiber);
         boost::ignore_unused(di);
@@ -140,6 +144,10 @@ public:
 
     void lock(typename basic_fiber<Strand>::this_fiber this_fiber)
     {
+#ifndef NDEBUG
+        assert(this_fiber.suspension_disallowed == 0);
+#endif // NDEBUG
+
         if (!mutex_) {
             throw std::system_error{
                 make_error_code(std::errc::operation_not_permitted)};
