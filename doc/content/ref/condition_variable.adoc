@@ -1,0 +1,181 @@
++++
+title = "condition_variable"
++++
+
+[source,cpp]
+----
+template<class Strand>
+class basic_condition_variable;
+
+using condition_variable
+    = basic_condition_variable<boost::asio::io_context::strand>;
+----
+
+As in Boost.Fiber:
+
+[quote, '<https://www.boost.org/doc/libs/1_71_0/libs/fiber/doc/html/fiber/synchronization/conditions.html>']
+____
+The class `condition_variable` provides a mechanism for a fiber to wait for
+notification from another fiber. When the fiber awakens from the wait, then it
+checks to see if the appropriate condition is now true, and continues if so. If
+the condition is not true, then the fiber calls `wait` again to resume
+waiting. In the simplest case, this condition is just a boolean variable.
+____
+
+[quote, '<https://www.boost.org/doc/libs/1_71_0/libs/fiber/doc/html/fiber/synchronization.html>']
+____
+[...] synchronization objects can neither be moved nor copied. A synchronization
+object acts as a mutually-agreed rendezvous point between different fibers. If
+such an object were copied somewhere else, the new copy would have no
+consumers. If such an object were _moved_ somewhere else, leaving the original
+instance in an unspecified state, existing consumers would behave strangely.
+____
+
+This is a classic synchronization primitive. There's not much to add. Plenty of
+documentation and works the same everywhere. Here I'll mostly only note the
+differences.
+
+== Spurious Wakeups
+
+Boost.Fiber offers the following guarantee:
+
+[quote, '<https://www.boost.org/doc/libs/1_71_0/libs/fiber/doc/html/fiber/synchronization.html>']
+____
+Neither `condition_variable` nor `condition_variable_any` are subject to
+spurious wakeup: `condition_variable::wait()` can only wake up when
+`condition_variable::notify_one()` or `condition_variable::notify_all()` is
+called.
+____
+
+This guarantee doesn't apply to IOFiber. Thanks to a more complex interaction of
+event flows (we also need to implement interruption requests), *IOFiber may on
+rare occasions perform spurious wakeups*. Therefore, the predicate must be
+re-evaluated upon return.
+
+== Wait with a deadline
+
+There is no `timedwait()` in this class. You can easily have the equivalent
+effect using the interruption API, so it's redundant. But if a PR is open to add
+this feature, I might accept it.
+
+== Strands
+
+Objects of this class are protected through a strand (specified in the
+constructor). The strand must be the same one associated with the mutex whose
+this condition variable will have a dynamic bind with, otherwise behaviour is
+undefined.
+
+If the condition variable, the notifier fiber and the waiting fiber all run in
+the same strand, then there is enough level of determinism to lift one
+restriction that exists in traditional condition variables.
+
+[quote, '<https://en.cppreference.com/w/cpp/thread/condition_variable>']
+____
+Even if the shared variable is atomic, it must be modified under the mutex in
+order to correctly publish the modification to the waiting thread.
+____
+
+The reason why this restriction on the notifier thread exists is to avoid a
+race. Consider the waiter thread and the notifier thread:
+
+[source]
+----
+void consumer()
+{
+    std::unique_lock<std::mutex> lk(m);
+    while (!ready) cond.wait(lk);
+    // ...
+}
+
+void producer()
+{
+    ready = true;
+    cond.notify_one();
+}
+----
+
+Pay attention to the points when the waiter thread checks if the event has been
+signalled by testing `ready` and the instant it blocks on `cond.wait()`. If the
+notifier thread mutates the shared variable and calls `cond.notify_one()`
+between these two points, then the signalization is lost. `cond.notify_one()`
+would be called by the time there would be no thread blocked on `cond.wait()`.
+That's why the notifier thread need to mutate the shared variable through a
+mutex.
+
+If the condition variable, the notifier fiber and the waiting fiber all run in
+the same strand, then this restriction isn't required (as long as there are no
+suspension points between the time the waiting fiber tests the condition and
+calls `cond.wait()`) and the notifier fiber can mutate the shared variable
+without holding a lock on the mutex. In this case, the condition variable
+essentially becomes a non-suspending way (post semantics) to unpark a parked
+fiber.
+
+== Member-functions
+
+=== _Constructor_
+
+[source,cpp]
+----
+basic_condition_variable(executor_type executor);
+----
+
+Constructs a new condition variable.
+
+=== _Desstructor_
+
+[source,cpp]
+----
+~basic_condition_variable();
+----
+
+Destructs the condition variable.
+
+As in Boost.Fiber:
+
+[quote, '<https://www.boost.org/doc/libs/1_72_0/libs/fiber/doc/html/fiber/synchronization/conditions.html#fiber.synchronization.conditions.destructor0>']
+____
+*Precondition*: All fibers waiting on `*this` have been notified by a call to
+`notify_one` or `notify_all` (though the respective calls to `wait` [...] need
+not have returned).
+____
+
+=== `get_executor()`
+
+[source,cpp]
+----
+executor_type get_executor() const;
+----
+
+Returns the strand associated with this condition variable.
+
+=== `wait()`
+
+[source,cpp]
+----
+void wait(basic_unique_lock<Strand>& lk, fiber::this_fiber this_fiber);
+----
+
+Atomically call `lk.unlock()` and blocks the current fiber.
+
+`wait()` is an interruption point. Prior to the delivery of the interruption
+request, the underlying mutex is re-acquired under the hood.
+
+=== `notify_*()`
+
+[source,cpp]
+----
+void notify_one();
+void notify_all();
+----
+
+If any fibers are currently blocked waiting on `*this` in a call to `wait()`,
+unblocks one/all of those fibers.
+
+== Nested types
+
+=== `executor_type`
+
+[source,cpp]
+----
+using executor_type = Strand;
+----
