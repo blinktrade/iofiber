@@ -37,7 +37,9 @@ doesn't inherit `std::exception`.
 
 You can check whether the fiber finished by normal means or by letting the
 `fiber_interrupted` exception escape its stack by using
-`fiber::interruption_caught()` (after joining it).
+`fiber::interruption_caught()` (after joining it). If the `fiber_interruption`
+exception escaped the stack, then `fiber::interruption_caught()` will return
+`true`.
 
 NOTE: `fiber::interruption_caught()` exposes the information that POSIX
 otherwise offers through `PTHREAD_CANCELED`.
