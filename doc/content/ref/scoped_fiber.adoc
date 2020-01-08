@@ -4,6 +4,7 @@ title = "scoped_fiber"
 
 [source,cpp]
 ----
+struct detach;
 struct join_if_joinable;
 struct interrupt_and_join_if_joinable;
 
@@ -45,6 +46,21 @@ t2.detach();
 ____
 
 == Free fiber functors
+
+=== Functor `detach`
+
+[source,cpp]
+----
+struct detach
+{
+    template<class Fiber, class Yield>
+    void operator()(Fiber& fib, Yield&)
+    {
+        if (fib.joinable())
+            fib.detach();
+    }
+};
+----
 
 === Functor `join_if_joinable`
 

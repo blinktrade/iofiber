@@ -513,6 +513,16 @@ private:
 
 using fiber = basic_fiber<boost::asio::io_context::strand>;
 
+struct detach
+{
+    template<class Fiber, class Yield>
+    void operator()(Fiber& fib, Yield&)
+    {
+        if (fib.joinable())
+            fib.detach();
+    }
+};
+
 struct join_if_joinable
 {
     template<class Fiber, class Yield>
