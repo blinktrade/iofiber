@@ -1,4 +1,4 @@
-/* Copyright (c) 2018, 2019 BlinkTrade, Inc.
+/* Copyright (c) 2018-2020 BlinkTrade, Inc.
 
    Distributed under the Boost Software License, Version 1.0. (See accompanying
    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt) */
@@ -22,7 +22,7 @@ public:
 
     basic_mutex(executor_type executor)
         : executor(std::move(executor))
-        , locked(false)
+        , control(std::make_shared<controlblock_type>())
     {}
 
     basic_mutex(const basic_mutex&) = delete;
@@ -48,13 +48,14 @@ public:
             return same_strand_lock(this_fiber);
 
         auto& pimpl = this_fiber.pimpl_;
-        executor.dispatch([pimpl,this] {
-            if (locked) {
-                pending.emplace_back(pimpl);
+        auto& control = this->control;
+        executor.dispatch([pimpl,control] {
+            if (control->locked) {
+                control->pending.emplace_back(pimpl);
                 return;
             }
 
-            locked = true;
+            control->locked = true;
             pimpl->executor.defer([pimpl]() {
                 pimpl->coro = std::move(pimpl->coro).resume();
             }, std::allocator<void>{});
@@ -65,16 +66,17 @@ public:
 
     void unlock()
     {
-        executor.dispatch([this]() {
-            assert(locked);
+        auto& control = this->control;
+        executor.dispatch([control]() {
+            assert(control->locked);
 
-            if (pending.size() == 0) {
-                locked = false;
+            if (control->pending.size() == 0) {
+                control->locked = false;
                 return;
             }
 
-            auto next{pending.front()};
-            pending.pop_front();
+            auto next{control->pending.front()};
+            control->pending.pop_front();
             next->executor.post([next]() {
                 next->coro = std::move(next->coro).resume();
             }, std::allocator<void>{});
@@ -82,23 +84,28 @@ public:
     }
 
 private:
+    struct controlblock_type
+    {
+        bool locked = false;
+        std::deque<std::shared_ptr<
+            typename basic_fiber<Strand>::this_fiber::impl
+        >> pending;
+    };
+
     void same_strand_lock(typename basic_fiber<Strand>::this_fiber this_fiber)
     {
-        if (locked) {
+        if (control->locked) {
             auto& pimpl = this_fiber.pimpl_;
-            pending.emplace_back(pimpl);
+            control->pending.emplace_back(pimpl);
             auto ex_work_guard = boost::asio::make_work_guard(pimpl->executor);
             pimpl->coro = std::move(pimpl->coro).resume();
         }
 
-        locked = true;
+        control->locked = true;
     }
 
     executor_type executor;
-    bool locked;
-    std::deque<std::shared_ptr<
-        typename basic_fiber<Strand>::this_fiber::impl
-    >> pending;
+    std::shared_ptr<controlblock_type> control;
 };
 
 using mutex = basic_mutex<boost::asio::io_context::strand>;

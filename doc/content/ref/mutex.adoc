@@ -34,6 +34,24 @@ basic_mutex(executor_type executor);
 
 Constructs a new mutex.
 
+=== _Desstructor_
+
+[source,cpp]
+----
+~basic_mutex();
+----
+
+Destructs the mutex.
+
+As in `pthread_mutex_destroy(3)`:
+
+[quote, '<http://man7.org/linux/man-pages/man3/pthread_mutex_destroy.3p.html>']
+____
+Attempting to destroy a locked mutex or a mutex that is referenced (for example,
+while being used in a `pthread_cond_timedwait()` or `pthread_cond_wait()`) by
+another thread results in undefined behavior.
+____
+
 === `get_executor()`
 
 [source,cpp]
