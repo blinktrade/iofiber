@@ -10,8 +10,8 @@ class fiber;
 This class is a move-only handle representing a spawned fiber. It's the object
 returned by `spawn()`.
 
-`fiber` objects may also be in a state that doesn't represent any fiber (after
-move-from, `detach()`, or `join()`).
+`fiber` objects may also be in a state that doesn't represent any fiber (default
+constructor, after move-from, `detach()`, or `join()`).
 
 WARNING: If the object represents a valid fiber, you *MUST* either call
 `join(this_fiber)` or `detach()` before the destructor is run.
@@ -21,6 +21,15 @@ IMPORTANT: `fiber` is a typedef for
 template argument of the instantiation used.
 
 == Member-functions
+
+=== _Constructor_
+
+[source,cpp]
+----
+basic_fiber();
+----
+
+Default constructor. Creates an object which doesn't represent any fiber.
 
 === `joinable()`
 

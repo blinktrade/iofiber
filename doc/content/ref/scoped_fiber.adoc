@@ -149,6 +149,10 @@ template<class CallableFiber = join_if_joinable,
 class scoped_fiber: private CallableFiber
 {
 public:
+    scoped_fiber(typename basic_fiber<JoinerStrand>::this_fiber this_fiber)
+        : yield(std::move(this_fiber))
+    {}
+
     scoped_fiber(
         basic_fiber<JoineeStrand> &&fib,
         typename basic_fiber<JoinerStrand>::this_fiber this_fiber
@@ -165,6 +169,13 @@ public:
     ~scoped_fiber()
     {
         static_cast<CallableFiber&>(*this)(fib, yield);
+    }
+
+    scoped_fiber& operator=(scoped_fiber&& o)
+    {
+        static_cast<CallableFiber&>(*this)(fib, yield);
+        fib = std::move(o.fib);
+        return *this;
     }
 
     bool joinable() const

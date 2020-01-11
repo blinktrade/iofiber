@@ -305,6 +305,10 @@ public:
     using this_fiber = detail::basic_this_fiber<Strand>;
     using impl = typename this_fiber::impl;
 
+    basic_fiber()
+        : joinable_state(joinable_type::DETACHED)
+    {}
+
     basic_fiber(std::shared_ptr<impl> pimpl)
         : pimpl_(std::move(pimpl))
         , joinable_state(joinable_type::JOINABLE)
@@ -583,6 +587,10 @@ template<class CallableFiber = join_if_joinable,
 class scoped_fiber: private CallableFiber
 {
 public:
+    scoped_fiber(typename basic_fiber<JoinerStrand>::this_fiber this_fiber)
+        : yield(std::move(this_fiber))
+    {}
+
     scoped_fiber(
         basic_fiber<JoineeStrand> &&fib,
         typename basic_fiber<JoinerStrand>::this_fiber this_fiber
@@ -599,6 +607,13 @@ public:
     ~scoped_fiber()
     {
         static_cast<CallableFiber&>(*this)(fib, yield);
+    }
+
+    scoped_fiber& operator=(scoped_fiber&& o)
+    {
+        static_cast<CallableFiber&>(*this)(fib, yield);
+        fib = std::move(o.fib);
+        return *this;
     }
 
     bool joinable() const
