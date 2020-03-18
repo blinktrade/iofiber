@@ -198,7 +198,7 @@ this:
 
 [source,cpp]
 ----
-  } catch (const fiber_interruption&) {
+  } catch (const fiber_interrupted&) {
     [[maybe_unused]]
     fiber::this_fiber::disable_interruption di{this_fiber};
 

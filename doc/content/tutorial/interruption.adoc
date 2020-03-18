@@ -37,7 +37,7 @@ doesn't inherit `std::exception`.
 
 You can check whether the fiber finished by normal means or by letting the
 `fiber_interrupted` exception escape its stack by using
-`fiber::interruption_caught()` (after joining it). If the `fiber_interruption`
+`fiber::interruption_caught()` (after joining it). If the `fiber_interrupted`
 exception escaped the stack, then `fiber::interruption_caught()` will return
 `true`.
 
@@ -47,7 +47,7 @@ otherwise offers through `PTHREAD_CANCELED`.
 == Reacting to interruption requests
 
 When a fiber is interrupted and reaches a suspension point, a
-`fiber_interruption` exception will be throw and you'll be unable to perform any
+`fiber_interrupted` exception will be throw and you'll be unable to perform any
 operation that would otherwise suspend the fiber.
 
 [NOTE]
@@ -59,7 +59,7 @@ try-catch blocks. If you do this, `interruption_caught()` will return
 However, catching the `fiber_interrupted` exception is not enough to disable
 interruptions and perform operations abstracted with suspending functions. As
 soon as you call the suspending function within the catch block, another
-`fiber_interruption` exception will be throw (operation will not even start for
+`fiber_interrupted` exception will be throw (operation will not even start for
 what it is worth).
 ====
 
