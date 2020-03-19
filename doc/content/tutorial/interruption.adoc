@@ -121,8 +121,8 @@ NOTE: This provides the functionality that POSIX otherwise offers through
 === `async_*` functions
 
 When a fiber is interrupted at an `async_*` function, the underlying IO request
-isn't cancelled immediately. Usually, this is not a problem because in codes
-like this (which should be most of the code out there):
+isn't cancelled immediately. Usually, this is not a problem because in code
+pieces like this (which should be most of the code out there)...
 
 [source,cpp]
 ----
@@ -137,7 +137,7 @@ void start(fiber::this_fiber this_fiber)
 }
 ----
 
-If the fiber is interrupted, stack unwinding will play on and destruct the
+...if the fiber is interrupted, stack unwinding will play on and destruct the
 underlying IO objects causing the operations to be aborted.
 
 However, this behaviour is less than ideal and for this reason you can customize
@@ -176,6 +176,52 @@ void start(fiber::this_fiber this_fiber)
   // ...
 }
 ----
+
+[NOTE]
+====
+[discrete]
+== Example
+
+When you do operations involving buffers, it's a common requirement that you
+keep the buffer accessible until the operation completes.
+
+[source,cpp]
+----
+void start(fiber::this_fiber this_fiber)
+{
+  // ...
+
+  boost::system::error_code ec;
+  BufferType buf;
+  boost::asio::async_read(socket, buf, this_fiber[ec]);
+  // ...
+}
+----
+
+If you rely on the default (no) interrupter (as in the example), then you have a
+problem. `buf` might be destroyed due to stack unwinding on `fiber_interrupted`
+while the `async_read()` operation is in progress.
+
+The solution is easy. Teach IOFiber how to interrupt the operation so the fiber
+wakeup (to throw `fiber_interrupted`) synchronizes with the cancellation of the
+underlying operation:
+
+[source,cpp]
+----
+void start(fiber::this_fiber this_fiber)
+{
+  // ...
+
+  // Must handle `operation_aborted` explicitly later
+  this_fiber.interrupter = [&socket]() { socket.cancel(); };
+
+  boost::system::error_code ec;
+  BufferType buf;
+  boost::asio::async_read(socket, buf, this_fiber[ec]);
+  // ...
+}
+----
+====
 
 == Suspension points
 
