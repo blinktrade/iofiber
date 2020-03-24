@@ -1,4 +1,4 @@
-/* Copyright (c) 2018, 2019 BlinkTrade, Inc.
+/* Copyright (c) 2018, 2019, 2020 BlinkTrade, Inc.
 
    Distributed under the Boost Software License, Version 1.0. (See accompanying
    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt) */
@@ -871,25 +871,18 @@ struct GetImpl<void>
     static void get(const std::tuple<>&) {}
 };
 
-} // namespace detail {
-
-} // namespace iofiber {
-} // namespace trial {
-
-namespace boost {
-namespace asio {
+template<class, class>
+class fiber_async_result;
 
 template<class Strand, class R, class... Args>
-class async_result<
-    trial::iofiber::detail::basic_this_fiber<Strand>,
-    R(boost::system::error_code, Args...)>
+class fiber_async_result<Strand, R(boost::system::error_code, Args...)>
 {
 public:
     static_assert(std::is_same<R, void>::value,
                   "completion handler return type must be void");
 
-    using return_type = typename trial::iofiber::detail::ReturnType<
-        typename decay<Args>::type...>::type;
+    using return_type = typename ReturnType<
+        typename std::decay<Args>::type...>::type;
 
     struct completion_handler_type
     {
@@ -953,16 +946,14 @@ public:
             return executor;
         }
 
-        std::shared_ptr<
-            typename trial::iofiber::detail::basic_this_fiber<Strand>::impl
-        > pimpl;
-        trial::iofiber::detail::resume_token_type token;
-        boost::system::error_code *out_ec;
+        std::shared_ptr<typename basic_this_fiber<Strand>::impl> pimpl;
+        resume_token_type token;
+        boost::system::error_code* out_ec;
         executor_type executor;
-        packed_args_type *args;
+        packed_args_type* args;
     };
 
-    async_result(completion_handler_type &handler)
+    explicit fiber_async_result(completion_handler_type& handler)
         : pimpl(handler.pimpl)
         , out_ec(handler.out_ec)
     {
@@ -976,26 +967,24 @@ public:
             *out_ec = args.ec;
         else if (args.ec)
             throw boost::system::system_error(args.ec);
-        return trial::iofiber::detail::GetImpl<return_type>::get(args.ret);
+        return GetImpl<return_type>::get(args.ret);
     }
 
 private:
-    std::shared_ptr<
-        typename trial::iofiber::detail::basic_this_fiber<Strand>::impl> pimpl;
-    boost::system::error_code *out_ec;
+    std::shared_ptr<typename basic_this_fiber<Strand>::impl> pimpl;
+    boost::system::error_code* out_ec;
     typename completion_handler_type::packed_args_type args;
 };
 
 template<class Strand, class R, class... Args>
-class async_result<
-    trial::iofiber::detail::basic_this_fiber<Strand>, R(Args...)>
+class fiber_async_result<Strand, R(Args...)>
 {
 public:
     static_assert(std::is_same<R, void>::value,
                   "completion handler return type must be void");
 
-    using return_type = typename trial::iofiber::detail::ReturnType<
-        typename decay<Args>::type...>::type;
+    using return_type = typename ReturnType<
+        typename std::decay<Args>::type...>::type;
 
     struct completion_handler_type
     {
@@ -1052,15 +1041,13 @@ public:
             return executor;
         }
 
-        std::shared_ptr<
-            typename trial::iofiber::detail::basic_this_fiber<Strand>::impl
-        > pimpl;
-        trial::iofiber::detail::resume_token_type token;
+        std::shared_ptr<typename basic_this_fiber<Strand>::impl> pimpl;
+        resume_token_type token;
         executor_type executor;
-        packed_args_type *args;
+        packed_args_type* args;
     };
 
-    async_result(completion_handler_type &handler)
+    explicit fiber_async_result(completion_handler_type& handler)
         : pimpl(handler.pimpl)
     {
         handler.args = &args;
@@ -1069,13 +1056,34 @@ public:
     return_type get()
     {
         pimpl->coro = std::move(pimpl->coro).resume();
-        return trial::iofiber::detail::GetImpl<return_type>::get(args);
+        return GetImpl<return_type>::get(args);
     }
 
 private:
-    std::shared_ptr<
-        typename trial::iofiber::detail::basic_this_fiber<Strand>::impl> pimpl;
+    std::shared_ptr<typename basic_this_fiber<Strand>::impl> pimpl;
     typename completion_handler_type::packed_args_type args;
+};
+
+} // namespace detail {
+
+} // namespace iofiber {
+} // namespace trial {
+
+namespace boost {
+namespace asio {
+
+template<class Strand, class T>
+class async_result<trial::iofiber::detail::basic_this_fiber<Strand>, T>
+    : public trial::iofiber::detail::fiber_async_result<Strand, T>
+{
+public:
+    explicit async_result(
+        typename trial::iofiber::detail::fiber_async_result<
+            Strand, T>::completion_handler_type&
+        handler
+    )
+        : trial::iofiber::detail::fiber_async_result<Strand, T>(handler)
+    {}
 };
 
 } // namespace asio {
