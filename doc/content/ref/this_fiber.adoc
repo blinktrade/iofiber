@@ -43,36 +43,6 @@ void start(fiber::this_fiber this_fiber)
     // ...
 ----
 
-[[operator_call]]
-=== `operator()()`
-
-[source,cpp]
-----
-template<class T, class... Args>
-void operator()(T& o,
-                void(T::*async_fn)(
-                    Args..., const basic_this_fiber<Strand>&),
-                Args&&... args);
-----
-
-Set the fiber <<interrupter,`interrupter`>> variable to `o.cancel()` and calls
-`(o.*async_fn)(std::forward<Args>(args)..., *this)`.
-
-`boost::asio::error::operation_aborted` errors will be translated to
-`fiber_interrupted` exceptions.
-
-Example:
-
-[source,cpp]
-----
-void start(fiber::this_fiber this_fiber)
-{
-  boost::asio::steady_timer timer{this_fiber.get_executor().context()};
-  timer.expires_from_now(std::chrono::seconds(1));
-
-  this_fiber(timer, &boost::asio::steady_timer::async_wait);
-----
-
 === `get_executor()`
 
 [source,cpp]
@@ -98,39 +68,25 @@ Re-schedules the fiber to be executed soon. Use this function to yield CPU-time
 to other fibers if you don't want to block the thread while doing intensive CPU
 work for a long period of time.
 
-[[call]]
-=== `call()`
+[[with_intr]]
+=== `with_intr()`
 
 [source,cpp]
 ----
-template<class R, class T, class... Args>
-R call(T& o, R(T::*async_fn)(Args..., const basic_this_fiber<Strand>&),
-       Args&&... args);
-
-template<class T, class... Args>
-void call(T& o,
-          void(T::*async_fn)(Args..., const basic_this_fiber<Strand>&),
-          Args&&... args);
+template<class... Args>
+unspecified with_intr(Args&&... args);
 ----
 
-Set the fiber <<interrupter,`interrupter`>> variable to `o.cancel()` and calls
-`(o.*async_fn)(std::forward<Args>(args)..., *this)`. If `R` is provided,
-function will return value from `async_fn()` call.
+Calls `interrupter_for<typename
+std::decay<Args>::type...>::assign(this->interrupter,
+std::forward<Args>(args)...)` and returns a completion token that can be used in
+asynchronous operations. When the operation finishes, calls
+`interrupter_for<typename std::decay<Args>::type...>::on_result()` (before the
+result is returned to the caller of the async operation).
 
-`boost::asio::error::operation_aborted` errors will be translated to
-`fiber_interrupted` exceptions.
+Return type is unspecified.
 
-Example:
-
-[source,cpp]
-----
-void start(fiber::this_fiber this_fiber)
-{
-  boost::asio::steady_timer timer{this_fiber.get_executor().context()};
-  timer.expires_from_now(std::chrono::seconds(1));
-
-  this_fiber.call<>(timer, &boost::asio::steady_timer::async_wait);
-----
+See link:../../tutorial/interruption/[_interruption(7)_] for details.
 
 === `{forbid,allow}_suspend()`
 
@@ -217,14 +173,14 @@ NOTE: It's only useful to modify this variable for IO requests (i.e. `async_*`
 functions) as the default interrupter will do fine for `this_fiber.yield()`,
 `fib.join(this_fiber)` and other synchronization techniques shown here.
 
-Always filling a custom interrupter is also the only you can have a robust
+Always filling a custom interrupter is also the only way you can have a robust
 program that never discards the result of an operation whose side-effects
-already occurred.
+already occurred (you can force fulfillment at every call-site by defining
+`TRIAL_IOFIBER_DISABLE_DEFAULT_INTERRUPTER`).
 
 .See also
 
-* <<operator_call,`operator()`>>.
-* <<call,`call()`>>.
+* <<with_intr,`with_intr()`>>.
 
 == Nested types
 

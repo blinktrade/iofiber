@@ -7,6 +7,7 @@
 #define TRIAL_IOFIBER_FIBER_H
 
 #include <stdexcept>
+#include <utility>
 
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/io_context.hpp>
@@ -24,6 +25,9 @@ namespace iofiber {
 class fiber_interrupted
 {};
 
+template<class... Args>
+struct interrupter_for;
+
 namespace detail {
 
 template<class>
@@ -36,6 +40,9 @@ template<class T>
 struct is_strand<boost::asio::strand<T>>: std::true_type {};
 
 using resume_token_type = std::uint32_t;
+
+template<class Strand, class IntrTrait>
+struct with_intr_token;
 
 template<class Strand>
 class basic_this_fiber
@@ -181,62 +188,12 @@ public:
         pimpl_->coro = std::move(pimpl_->coro).resume();
     }
 
-    template<class R, class T, class... Args>
-    typename std::enable_if<!std::is_same<R, void>::value, R>::type
-    call(T& o, R(T::*async_fn)(Args..., const basic_this_fiber<Strand>&),
-         Args&&... args)
-    {
-#ifndef NDEBUG
-        assert(suspension_disallowed == 0);
-#endif // NDEBUG
-        interrupter = [&o]() { o.cancel(); };
-        try {
-            auto ret = (o.*async_fn)(std::forward<Args>(args)..., *this);
-            if (out_ec_ && *out_ec_ == boost::asio::error::operation_aborted)
-                throw fiber_interrupted();
-            return std::move(ret);
-        } catch (const boost::system::system_error& e) {
-            if (e.code() == boost::asio::error::operation_aborted) {
-                throw fiber_interrupted();
-            } else {
-                throw;
-            }
-        }
-    }
-
-    template<class R, class T, class... Args>
-    void call(T& o,
-              void(T::*async_fn)(Args..., const basic_this_fiber<Strand>&),
-              Args&&... args)
-    {
-#ifndef NDEBUG
-        assert(suspension_disallowed == 0);
-#endif // NDEBUG
-        interrupter = [&o]() { o.cancel(); };
-        try {
-            (o.*async_fn)(std::forward<Args>(args)..., *this);
-            if (out_ec_ && *out_ec_ == boost::asio::error::operation_aborted)
-                throw fiber_interrupted();
-        } catch (const boost::system::system_error& e) {
-            if (e.code() == boost::asio::error::operation_aborted) {
-                throw fiber_interrupted();
-            } else {
-                throw;
-            }
-        }
-    }
-
-    template<class T, class... Args>
-    void operator()(T& o,
-                    void(T::*async_fn)(
-                        Args..., const basic_this_fiber<Strand>&),
-                    Args&&... args)
-    {
-#ifndef NDEBUG
-        assert(suspension_disallowed == 0);
-#endif // NDEBUG
-        call<void, T>(o, async_fn, std::forward<Args>(args)...);
-    }
+    template<class... Args>
+    with_intr_token<
+        Strand,
+        trial::iofiber::interrupter_for<typename std::decay<Args>::type...>
+    >
+    with_intr(Args&&... args);
 
     void forbid_suspend()
     {
@@ -268,6 +225,41 @@ public:
 #endif // NDEBUG
     // }}}
 };
+
+template<class Strand, class IntrTrait>
+struct with_intr_token
+{
+    with_intr_token(
+        std::shared_ptr<typename basic_this_fiber<Strand>::impl> pimpl,
+        boost::system::error_code* out_ec
+    )
+        : pimpl(std::move(pimpl))
+        , out_ec(out_ec)
+    {}
+
+    with_intr_token(const with_intr_token&) = default;
+    with_intr_token(with_intr_token&&) = default;
+
+    std::shared_ptr<typename basic_this_fiber<Strand>::impl> pimpl;
+    boost::system::error_code* out_ec;
+};
+
+template<class Strand>
+template<class... Args>
+inline
+with_intr_token<
+    Strand, trial::iofiber::interrupter_for<typename std::decay<Args>::type...>
+>
+basic_this_fiber<Strand>::with_intr(Args&&... args)
+{
+#ifndef NDEBUG
+    assert(suspension_disallowed == 0);
+#endif // NDEBUG
+    using IntrTrait = trial::iofiber::interrupter_for<
+        typename std::decay<Args>::type...>;
+    IntrTrait::assign(interrupter, std::forward<Args>(args)...);
+    return with_intr_token<Strand, IntrTrait>{pimpl_, out_ec_};
+}
 
 template<class T = void>
 class service_aborted: public boost::asio::execution_context::service
@@ -871,11 +863,62 @@ struct GetImpl<void>
     static void get(const std::tuple<>&) {}
 };
 
-template<class, class>
+// bind + apply {{{
+
+template<class IntrTrait, class T, std::size_t... Idxs>
+void apply_on_result_impl(boost::system::error_code& ec, T& args,
+                          std::index_sequence<Idxs...>)
+{
+    IntrTrait::on_result(ec, std::get<Idxs>(args)...);
+}
+
+template<class IntrTrait, class... Args>
+void apply_on_result(boost::system::error_code& ec, std::tuple<Args...>& args)
+{
+    using Idxs = std::make_index_sequence<sizeof...(Args)>;
+    apply_on_result_impl<IntrTrait>(ec, args, Idxs{});
+}
+
+template<class IntrTrait, class T>
+void apply_on_result(boost::system::error_code& ec, T& val)
+{
+    IntrTrait::on_result(ec, val);
+}
+
+template<class IntrTrait, class T, std::size_t... Idxs>
+void apply_on_result_impl(T& args, std::index_sequence<Idxs...>)
+{
+    IntrTrait::on_result(std::get<Idxs>(args)...);
+}
+
+template<class IntrTrait, class... Args>
+void apply_on_result(std::tuple<Args...>& args)
+{
+    using Idxs = std::make_index_sequence<sizeof...(Args)>;
+    apply_on_result_impl<IntrTrait>(args, Idxs{});
+}
+
+template<class IntrTrait, class T>
+void apply_on_result(T& val)
+{
+    IntrTrait::on_result(val);
+}
+
+// }}}
+
+struct dummy_intr_trait
+{
+    template<class... Args>
+    static void on_result(Args&&...)
+    {}
+};
+
+template<class, class, class>
 class fiber_async_result;
 
-template<class Strand, class R, class... Args>
-class fiber_async_result<Strand, R(boost::system::error_code, Args...)>
+template<class Strand, class IntrTrait, class R, class... Args>
+class fiber_async_result<
+    Strand, IntrTrait, R(boost::system::error_code, Args...)>
 {
 public:
     static_assert(std::is_same<R, void>::value,
@@ -909,6 +952,21 @@ public:
 #ifndef NDEBUG
             assert(tkn.suspension_disallowed == 0);
 #endif // NDEBUG
+            if (pimpl->interruption_enabled && pimpl->interrupted.load()) {
+                pimpl->interrupter = nullptr;
+                throw trial::iofiber::fiber_interrupted();
+            }
+        }
+
+        completion_handler_type(
+            const trial::iofiber::detail::with_intr_token<Strand, IntrTrait>&
+            token
+        )
+            : pimpl(token.pimpl)
+            , token(++token.pimpl->resume_token)
+            , out_ec(token.out_ec)
+            , executor(token.pimpl->executor)
+        {
             if (pimpl->interruption_enabled && pimpl->interrupted.load()) {
                 pimpl->interrupter = nullptr;
                 throw trial::iofiber::fiber_interrupted();
@@ -963,6 +1021,7 @@ public:
     return_type get()
     {
         pimpl->coro = std::move(pimpl->coro).resume();
+        apply_on_result<IntrTrait>(args.ec, args.ret);
         if (out_ec)
             *out_ec = args.ec;
         else if (args.ec)
@@ -976,8 +1035,8 @@ private:
     typename completion_handler_type::packed_args_type args;
 };
 
-template<class Strand, class R, class... Args>
-class fiber_async_result<Strand, R(Args...)>
+template<class Strand, class IntrTrait, class R, class... Args>
+class fiber_async_result<Strand, IntrTrait, R(Args...)>
 {
 public:
     static_assert(std::is_same<R, void>::value,
@@ -1006,6 +1065,20 @@ public:
 #ifndef NDEBUG
             assert(tkn.suspension_disallowed == 0);
 #endif // NDEBUG
+            if (pimpl->interruption_enabled && pimpl->interrupted.load()) {
+                pimpl->interrupter = nullptr;
+                throw trial::iofiber::fiber_interrupted();
+            }
+        }
+
+        completion_handler_type(
+            const trial::iofiber::detail::with_intr_token<Strand, IntrTrait>&
+            token
+        )
+            : pimpl(token.pimpl)
+            , token(++token.pimpl->resume_token)
+            , executor(token.pimpl->executor)
+        {
             if (pimpl->interruption_enabled && pimpl->interrupted.load()) {
                 pimpl->interrupter = nullptr;
                 throw trial::iofiber::fiber_interrupted();
@@ -1056,6 +1129,7 @@ public:
     return_type get()
     {
         pimpl->coro = std::move(pimpl->coro).resume();
+        apply_on_result<IntrTrait>(args);
         return GetImpl<return_type>::get(args);
     }
 
@@ -1072,17 +1146,38 @@ private:
 namespace boost {
 namespace asio {
 
+#ifndef TRIAL_IOFIBER_DISABLE_DEFAULT_INTERRUPTER
+
 template<class Strand, class T>
 class async_result<trial::iofiber::detail::basic_this_fiber<Strand>, T>
-    : public trial::iofiber::detail::fiber_async_result<Strand, T>
+    : public trial::iofiber::detail::fiber_async_result<
+        Strand, trial::iofiber::detail::dummy_intr_trait, T>
 {
 public:
     explicit async_result(
         typename trial::iofiber::detail::fiber_async_result<
-            Strand, T>::completion_handler_type&
+            Strand, trial::iofiber::detail::dummy_intr_trait, T
+        >::completion_handler_type&
         handler
     )
-        : trial::iofiber::detail::fiber_async_result<Strand, T>(handler)
+        : trial::iofiber::detail::fiber_async_result<
+            Strand, trial::iofiber::detail::dummy_intr_trait, T>(handler)
+    {}
+};
+
+#endif // !defined(TRIAL_IOFIBER_DISABLE_DEFAULT_INTERRUPTER)
+
+template<class Strand, class T, class U>
+class async_result<trial::iofiber::detail::with_intr_token<Strand, T>, U>
+    : public trial::iofiber::detail::fiber_async_result<Strand, T, U>
+{
+public:
+    explicit async_result(
+        typename trial::iofiber::detail::fiber_async_result<
+            Strand, T, U>::completion_handler_type&
+        handler
+    )
+        : trial::iofiber::detail::fiber_async_result<Strand, T, U>(handler)
     {}
 };
 

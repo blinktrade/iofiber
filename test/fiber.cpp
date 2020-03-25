@@ -12,24 +12,33 @@
 #include <vector>
 
 #include <boost/asio/steady_timer.hpp>
+
+#include <trial/iofiber/interrupter/asio/basic_waitable_timer.hpp>
 #include <trial/iofiber/fiber.hpp>
 
 namespace asio = boost::asio;
 using namespace trial::iofiber;
+
+struct async_identity_initiation
+{
+    template<class Handler, class... Args>
+    void operator()(Handler&& handler, Args&&... args)
+    {
+        auto ex = asio::get_associated_executor(handler);
+        ex.post(std::bind(std::forward<Handler>(handler),
+                          std::forward<Args>(args)...),
+                std::allocator<void>{});
+    }
+};
 
 template<class CompletionToken, class... Args>
 BOOST_ASIO_INITFN_RESULT_TYPE(
     CompletionToken, void(typename std::decay<Args>::type...))
 async_identity(CompletionToken&& token, Args&&... args)
 {
-    asio::async_completion<
+    return asio::async_initiate<
         CompletionToken, void(typename std::decay<Args>::type...)
-    > init{std::forward<CompletionToken>(token)};
-    auto ex = asio::get_associated_executor(init.completion_handler);
-    ex.post(std::bind(std::move(init.completion_handler),
-                      std::forward<Args>(args)...),
-            std::allocator<void>{});
-    return init.result.get();
+    >(async_identity_initiation{}, token, std::forward<Args>(args)...);
 }
 
 struct dummy_io_object
@@ -58,6 +67,32 @@ struct dummy_io_object
     void cancel()
     {}
 };
+
+namespace trial {
+namespace iofiber {
+
+template<>
+struct interrupter_for<dummy_io_object>
+{
+    static void assign(std::function<void()>& interrupter, dummy_io_object& o)
+    {
+        interrupter = [&o]() { o.cancel(); };
+    }
+
+    template<class... Args>
+    static void on_result(boost::system::error_code& ec, Args&...)
+    {
+        if (ec == boost::asio::error::operation_aborted)
+            throw fiber_interrupted();
+    }
+
+    template<class... Args>
+    static void on_result(Args&...)
+    {}
+};
+
+} // namespace iofiber
+} // namespace trial
 
 BOOST_AUTO_TEST_CASE(yield)
 {
@@ -630,7 +665,7 @@ BOOST_AUTO_TEST_CASE(auto_custom_interrupter)
     auto f1 = spawn(strand, [&](fiber::this_fiber this_fiber) {
         asio::steady_timer timer{this_fiber.get_executor().context()};
         timer.expires_after(std::chrono::seconds(1));
-        this_fiber(timer, &asio::steady_timer::async_wait);
+        timer.async_wait(this_fiber.with_intr(timer));
         events.push_back(0);
     });
 
@@ -657,7 +692,7 @@ BOOST_AUTO_TEST_CASE(auto_custom_interrupter_without_exception)
         boost::system::error_code ec;
         asio::steady_timer timer{this_fiber.get_executor().context()};
         timer.expires_after(std::chrono::seconds(1));
-        this_fiber[ec](timer, &asio::steady_timer::async_wait);
+        timer.async_wait(this_fiber[ec].with_intr(timer));
         events.push_back(0);
     });
 
@@ -682,7 +717,7 @@ BOOST_AUTO_TEST_CASE(auto_custom_interrupter_without_ec_callback)
 
     auto f1 = spawn(strand, [&](fiber::this_fiber this_fiber) {
         dummy_io_object o;
-        this_fiber(o, &dummy_io_object::async_foo, 42, 4.2);
+        o.async_foo(42, 4.2, this_fiber.with_intr(o));
         events.push_back(0);
     });
 
@@ -707,7 +742,7 @@ BOOST_AUTO_TEST_CASE(auto_custom_interrupter_with_retval)
 
     auto f1 = spawn(strand, [&](fiber::this_fiber this_fiber) {
         dummy_io_object o;
-        int x = this_fiber.call<int>(o, &dummy_io_object::async_bar);
+        int x = o.async_bar(this_fiber.with_intr(o));
         assert(x == 3); //< unreachable anyway
         events.push_back(0);
     });
@@ -733,7 +768,7 @@ BOOST_AUTO_TEST_CASE(auto_custom_interrupter_with_retval_no_interrupt)
 
     spawn(strand, [&](fiber::this_fiber this_fiber) {
         dummy_io_object o;
-        int x = this_fiber.call<int>(o, &dummy_io_object::async_baz, 33);
+        int x = o.async_baz(33, this_fiber.with_intr(o));
         BOOST_REQUIRE_EQUAL(x, 33);
         events.push_back(0);
     }).detach();
@@ -757,7 +792,7 @@ BOOST_AUTO_TEST_CASE(consume_auto_custom_interrupter)
         timer.expires_after(std::chrono::milliseconds(1));
 
         BOOST_REQUIRE(!this_fiber.interrupter);
-        this_fiber(timer, &asio::steady_timer::async_wait);
+        timer.async_wait(this_fiber.with_intr(timer));
         BOOST_REQUIRE(!this_fiber.interrupter);
     }).detach();
 

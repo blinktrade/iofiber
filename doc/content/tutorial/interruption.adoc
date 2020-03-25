@@ -166,13 +166,15 @@ matters further, the following syntax sugar is provided:
 
 [source,cpp]
 ----
+#include <trial/iofiber/interrupter/asio/basic_waitable_timer.hpp>
+
 void start(fiber::this_fiber this_fiber)
 {
   boost::asio::steady_timer timer{this_fiber.get_executor().context()};
   timer.expires_from_now(std::chrono::seconds(1));
 
   boost::system::error_code ec;
-  this_fiber[ec](timer, &boost::asio::steady_timer::async_wait);
+  timer.async_wait(this_fiber[ec].with_intr(timer));
   // ...
 }
 ----
@@ -222,6 +224,51 @@ void start(fiber::this_fiber this_fiber)
 }
 ----
 ====
+
+`with_intr()` will set `this_fiber.interrupter` and return a new token for the
+`async_*` operation. The interrupter is selected based on a trait mechanism —
+`interrupter_for`. This is the specialization for `boost::asio::steady_timer`:
+
+[source,cpp]
+----
+template<class Clock, class WaitTraits, class Executor>
+struct interrupter_for<
+  boost::asio::basic_waitable_timer<Clock, WaitTraits, Executor>>
+{
+  // Called within `with_intr()` before operation begins
+  static void assign(
+    std::function<void()>& interrupter,
+    boost::asio::basic_waitable_timer<Clock, WaitTraits, Executor>& timer)
+  {
+    interrupter = [&timer]() { timer.cancel(); };
+  }
+
+  // Called after result is ready (just before control goes back to the user)
+  template<class... Args>
+  static void on_result(boost::system::error_code& ec, Args&...)
+  {
+    if (ec == boost::asio::error::operation_aborted)
+      throw trial::iofiber::fiber_interrupted();
+  }
+};
+----
+
+`on_result()` will be called on the fiber stack just before the result is
+converted back to user-consumption (e.g. error codes will be converted to
+exceptions if user has not used the `this_fiber[ec]` syntax).  Arguments are
+passed to the trait by _non-const ref_ and you can mutate them before delivery
+to the user (e.g. if you clear the error code object, no exception will be
+thrown).
+
+You may specialize this trait for any object (or sequence of objects). They will
+be forwarded from the call to `with_intr()` to `assign()`. It is expected that
+library providers specialize it for their IO objects so you don't have to worry.
+Separate headers in this library will specialize this trait for Boost/ASIO IO
+objects.
+
+IMPORTANT: If you want to force the use of this safer `with_intr()` syntax and
+forbid plain `this_fiber` to work as a completion token, just define
+`TRIAL_IOFIBER_DISABLE_DEFAULT_INTERRUPTER`.
 
 == Suspension points
 
