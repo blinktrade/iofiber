@@ -178,7 +178,7 @@ public:
         {
             auto token = ++pimpl_->resume_token;
             auto pimpl = this->pimpl_;
-            pimpl_->executor.post([pimpl,token]() {
+            pimpl_->executor.defer([pimpl,token]() {
                 if (token != pimpl->resume_token)
                     return;
 
@@ -463,7 +463,7 @@ private:
         pimpl_->joiner_executor = [active_coro,token]() {
             // This isn't strand-migration. This is just to let the joining
             // fiber die and perform any shutdown sequence it should.
-            active_coro->executor.post([active_coro,token]() {
+            active_coro->executor.defer([active_coro,token]() {
                 if (token != active_coro->resume_token)
                     return;
 
@@ -822,6 +822,68 @@ spawn(boost::asio::io_context &ctx, F &&f,
 
 namespace detail {
 
+template<class Executor>
+class remap_post_to_defer: private Executor
+{
+public:
+    remap_post_to_defer(const remap_post_to_defer&) = default;
+    remap_post_to_defer(remap_post_to_defer&&) = default;
+
+    explicit remap_post_to_defer(const Executor& ex)
+        : Executor(ex)
+    {}
+
+    explicit remap_post_to_defer(Executor&& ex)
+        : Executor(std::move(ex))
+    {}
+
+    bool operator==(const remap_post_to_defer& o) const noexcept
+    {
+        return static_cast<const Executor&>(*this) ==
+            static_cast<const Executor&>(o);
+    }
+
+    bool operator!=(const remap_post_to_defer& o) const noexcept
+    {
+        return static_cast<const Executor&>(*this) !=
+            static_cast<const Executor&>(o);
+    }
+
+    decltype(std::declval<Executor>().context())
+    context() const noexcept
+    {
+        return Executor::context();
+    }
+
+    void on_work_started() const noexcept
+    {
+        Executor::on_work_started();
+    }
+
+    void on_work_finished() const noexcept
+    {
+        Executor::on_work_finished();
+    }
+
+    template<class F, class A>
+    void dispatch(F&& f, const A& a) const
+    {
+        Executor::dispatch(std::forward<F>(f), a);
+    }
+
+    template<class F, class A>
+    void post(F&& f, const A& a) const
+    {
+        Executor::defer(std::forward<F>(f), a);
+    }
+
+    template<class F, class A>
+    void defer(F&& f, const A& a) const
+    {
+        Executor::defer(std::forward<F>(f), a);
+    }
+};
+
 template<class... Args>
 struct ReturnType
 {
@@ -939,7 +1001,7 @@ public:
             >::type ret;
         };
 
-        using executor_type = Strand;
+        using executor_type = remap_post_to_defer<Strand>;
 
         completion_handler_type(
             const typename trial::iofiber::basic_fiber<Strand>::this_fiber& tkn
@@ -1053,7 +1115,7 @@ public:
             return_type
         >::type;
 
-        using executor_type = Strand;
+        using executor_type = remap_post_to_defer<Strand>;
 
         completion_handler_type(
             const typename trial::iofiber::basic_fiber<Strand>::this_fiber &tkn
