@@ -236,16 +236,18 @@ struct interrupter_for<
   boost::asio::basic_waitable_timer<Clock, WaitTraits, Executor>>
 {
   // Called within `with_intr()` before operation begins
+  template<class T>
   static void assign(
-    std::function<void()>& interrupter,
+    T this_fiber,
     boost::asio::basic_waitable_timer<Clock, WaitTraits, Executor>& timer)
   {
-    interrupter = [&timer]() { timer.cancel(); };
+    this_fiber.interrupter = [&timer]() { timer.cancel(); };
   }
 
   // Called after result is ready (just before control goes back to the user)
-  template<class... Args>
-  static void on_result(boost::system::error_code& ec, Args&...)
+  template<class T, class... Args>
+  static void on_result(T this_fiber, boost::system::error_code& ec,
+                        Args&...)
   {
     if (ec == boost::asio::error::operation_aborted)
       throw trial::iofiber::fiber_interrupted();

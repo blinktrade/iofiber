@@ -77,8 +77,7 @@ template<class... Args>
 unspecified with_intr(Args&&... args);
 ----
 
-Calls `interrupter_for<typename
-std::decay<Args>::type...>::assign(this->interrupter,
+Calls `interrupter_for<typename std::decay<Args>::type...>::assign(*this,
 std::forward<Args>(args)...)` and returns a completion token that can be used in
 asynchronous operations. When the operation finishes, calls
 `interrupter_for<typename std::decay<Args>::type...>::on_result()` (before the

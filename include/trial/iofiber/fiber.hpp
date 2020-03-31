@@ -335,7 +335,7 @@ basic_this_fiber<Strand>::with_intr(Args&&... args)
 #endif // NDEBUG
     using IntrTrait = trial::iofiber::interrupter_for<
         typename std::decay<Args>::type...>;
-    IntrTrait::assign(interrupter, std::forward<Args>(args)...);
+    IntrTrait::assign(*this, std::forward<Args>(args)...);
     return with_intr_token<Strand, IntrTrait>{pimpl_, out_ec_};
 }
 
@@ -1005,43 +1005,48 @@ struct GetImpl<void>
 
 // bind + apply {{{
 
-template<class IntrTrait, class T, std::size_t... Idxs>
-void apply_on_result_impl(boost::system::error_code& ec, T& args,
+template<class IntrTrait, class Strand, class T, std::size_t... Idxs>
+void apply_on_result_impl(basic_this_fiber<Strand>& this_fiber,
+                          boost::system::error_code& ec, T& args,
                           std::index_sequence<Idxs...>)
 {
-    IntrTrait::on_result(ec, std::get<Idxs>(args)...);
+    IntrTrait::on_result(this_fiber, ec, std::get<Idxs>(args)...);
 }
 
-template<class IntrTrait, class... Args>
-void apply_on_result(boost::system::error_code& ec, std::tuple<Args...>& args)
+template<class IntrTrait, class Strand, class... Args>
+void apply_on_result(basic_this_fiber<Strand> this_fiber,
+                     boost::system::error_code& ec, std::tuple<Args...>& args)
 {
     using Idxs = std::make_index_sequence<sizeof...(Args)>;
-    apply_on_result_impl<IntrTrait>(ec, args, Idxs{});
+    apply_on_result_impl<IntrTrait>(this_fiber, ec, args, Idxs{});
 }
 
-template<class IntrTrait, class T>
-void apply_on_result(boost::system::error_code& ec, T& val)
+template<class IntrTrait, class Strand, class T>
+void apply_on_result(basic_this_fiber<Strand> this_fiber,
+                     boost::system::error_code& ec, T& val)
 {
-    IntrTrait::on_result(ec, val);
+    IntrTrait::on_result(this_fiber, ec, val);
 }
 
-template<class IntrTrait, class T, std::size_t... Idxs>
-void apply_on_result_impl(T& args, std::index_sequence<Idxs...>)
+template<class IntrTrait, class Strand, class T, std::size_t... Idxs>
+void apply_on_result_impl(basic_this_fiber<Strand>& this_fiber, T& args,
+                          std::index_sequence<Idxs...>)
 {
-    IntrTrait::on_result(std::get<Idxs>(args)...);
+    IntrTrait::on_result(this_fiber, std::get<Idxs>(args)...);
 }
 
-template<class IntrTrait, class... Args>
-void apply_on_result(std::tuple<Args...>& args)
+template<class IntrTrait, class Strand, class... Args>
+void apply_on_result(basic_this_fiber<Strand> this_fiber,
+                     std::tuple<Args...>& args)
 {
     using Idxs = std::make_index_sequence<sizeof...(Args)>;
-    apply_on_result_impl<IntrTrait>(args, Idxs{});
+    apply_on_result_impl<IntrTrait>(this_fiber, args, Idxs{});
 }
 
-template<class IntrTrait, class T>
-void apply_on_result(T& val)
+template<class IntrTrait, class Strand, class T>
+void apply_on_result(basic_this_fiber<Strand> this_fiber, T& val)
 {
-    IntrTrait::on_result(val);
+    IntrTrait::on_result(this_fiber, val);
 }
 
 // }}}
@@ -1161,7 +1166,8 @@ public:
     return_type get()
     {
         pimpl->coro = std::move(pimpl->coro).resume();
-        apply_on_result<IntrTrait>(args.ec, args.ret);
+        apply_on_result<IntrTrait>(
+            basic_this_fiber<Strand>{pimpl}, args.ec, args.ret);
         if (out_ec)
             *out_ec = args.ec;
         else if (args.ec)
@@ -1269,7 +1275,7 @@ public:
     return_type get()
     {
         pimpl->coro = std::move(pimpl->coro).resume();
-        apply_on_result<IntrTrait>(args);
+        apply_on_result<IntrTrait>(basic_this_fiber<Strand>{pimpl}, args);
         return GetImpl<return_type>::get(args);
     }
 

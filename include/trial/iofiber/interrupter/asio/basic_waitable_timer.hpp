@@ -16,15 +16,17 @@ template<class Clock, class WaitTraits, class Executor>
 struct interrupter_for<
     boost::asio::basic_waitable_timer<Clock, WaitTraits, Executor>>
 {
+    template<class T>
     static void assign(
-        std::function<void()>& interrupter,
+        const T& this_fiber,
         boost::asio::basic_waitable_timer<Clock, WaitTraits, Executor>& timer)
     {
-        interrupter = [&timer]() { timer.cancel(); };
+        this_fiber.interrupter = [&timer]() { timer.cancel(); };
     }
 
-    template<class... Args>
-    static void on_result(boost::system::error_code& ec, Args&...)
+    template<class T, class... Args>
+    static void on_result(const T& /*this_fiber*/,
+                          boost::system::error_code& ec, Args&...)
     {
         if (ec == boost::asio::error::operation_aborted)
             throw trial::iofiber::fiber_interrupted();

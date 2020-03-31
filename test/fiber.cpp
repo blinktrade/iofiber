@@ -74,20 +74,22 @@ namespace iofiber {
 template<>
 struct interrupter_for<dummy_io_object>
 {
-    static void assign(std::function<void()>& interrupter, dummy_io_object& o)
+    template<class T>
+    static void assign(T this_fiber, dummy_io_object& o)
     {
-        interrupter = [&o]() { o.cancel(); };
+        this_fiber.interrupter = [&o]() { o.cancel(); };
     }
 
-    template<class... Args>
-    static void on_result(boost::system::error_code& ec, Args&...)
+    template<class T, class... Args>
+    static void on_result(T /*this_fiber*/, boost::system::error_code& ec,
+                          Args&...)
     {
         if (ec == boost::asio::error::operation_aborted)
             throw fiber_interrupted();
     }
 
-    template<class... Args>
-    static void on_result(Args&...)
+    template<class T, class... Args>
+    static void on_result(T /*this_fiber*/, Args&...)
     {}
 };
 
