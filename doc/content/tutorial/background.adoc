@@ -46,3 +46,15 @@ Other inspirations, even if minimal, were:
   `interruption_caught()`.
 * http://jehanne.io/2018/11/15/simplicity-awakes.html[Giacomo Tesio's awake
   syscall idea] was an inspiration to `this_fiber.interrupter` field.
+
+== Fiber local storage
+
+Boost.Fiber interface was not considered. Boost.Fiber just mirrors Boost.Thread
+interface. However Boost.Thread interface is meant for portability on platforms
+that lack support for thread-local. If the implementation is not constrained to
+rely solely on ``pthread_key_create``/``tss_create`` then there is no reason to
+follow Boost.Thread design.
+
+https://github.com/facebook/folly/blob/ea2ad0ad002b605fcf9d56c4d920bb51c16ea821/folly/fibers/FiberManagerInternal-inl.h#L560-L561[IOFiber
+design is similar to Facebook's Folly]. The difference is support for user types
+that have no default constructors.

@@ -122,6 +122,26 @@ See also the
 link:../assert_exclusive_strand_ref/[`assert_exclusive_strand_ref(3)`] RAII
 helper.
 
+=== `local()`
+
+[source,cpp]
+----
+template<class T, class... Args>
+T& local(Args&&... args);
+----
+
+Access fiber local storage. If `T` is not in fiber-local storage, constructs `T`
+forwarding `args`. `T` will be destructed when fiber finishes.
+
+Once `T` is in the fiber-local storage, it'll only be destructed once the fiber
+finishes and it'll remain at a stable memory location throughout its lifetime,
+so you can safely cache pointers to it. That's also the reason why no
+`reset_*()` function to clear local data is provided.
+
+Requires:: `noexcept(~T())`
+
+Exception safety:: Provides strong exception guarantees.
+
 == Member variables
 
 [[interrupter]]

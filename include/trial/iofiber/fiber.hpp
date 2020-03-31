@@ -8,6 +8,7 @@
 
 #include <stdexcept>
 #include <utility>
+#include <atomic>
 
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/io_context.hpp>
@@ -15,9 +16,9 @@
 
 #include <boost/context/fiber.hpp>
 
-#include <boost/core/ignore_unused.hpp>
+#include <boost/intrusive/slist.hpp>
 
-#include <atomic>
+#include <boost/core/ignore_unused.hpp>
 
 namespace trial {
 namespace iofiber {
@@ -44,6 +45,58 @@ using resume_token_type = std::uint32_t;
 template<class Strand, class IntrTrait>
 struct with_intr_token;
 
+class local_data_base
+    : public boost::intrusive::slist_base_hook<
+#ifdef NDEBUG
+        boost::intrusive::link_mode<boost::intrusive::normal_link>
+#else
+        boost::intrusive::link_mode<boost::intrusive::safe_link>
+#endif
+    >
+{
+public:
+    local_data_base(void* type_index)
+        : type_index(type_index)
+    {}
+
+    virtual void* get() = 0;
+
+    virtual ~local_data_base() noexcept = default;
+
+    void* type_index;
+};
+
+template<class T>
+class local_data: public local_data_base
+{
+public:
+    static_assert(noexcept(~T()), "T can't throw");
+
+    template<class... Args>
+    local_data(Args&&... args)
+        : local_data_base(&id)
+        , value(std::forward<Args>(args)...)
+    {}
+
+    void* get() override
+    {
+        return &value;
+    }
+
+    T& operator*()
+    {
+        return value;
+    }
+
+    static char id;
+
+private:
+    T value;
+};
+
+template<class T>
+char local_data<T>::id;
+
 template<class Strand>
 class basic_this_fiber
 {
@@ -51,6 +104,11 @@ public:
     struct impl
     {
         impl(Strand executor) : executor(std::move(executor)) {}
+
+        ~impl() noexcept
+        {
+            local_data.clear_and_dispose([](local_data_base* p) { delete p; });
+        }
 
         // Thread-safe. {{{
         Strand executor;
@@ -80,6 +138,13 @@ public:
         // been called. This property simplifies critical/synchronization
         // sections.
         std::function<void()> joiner_executor;
+
+        boost::intrusive::slist<
+            local_data_base,
+            boost::intrusive::constant_time_size<false>,
+            boost::intrusive::linear<true>,
+            boost::intrusive::cache_last<false>
+        > local_data;
         // }}}
     };
 
@@ -216,6 +281,19 @@ public:
     // reading Giacomo Tesio's awake syscall idea:
     // <http://jehanne.io/2018/11/15/simplicity-awakes.html>.
     std::function<void()>& interrupter;
+
+    template<class T, class... Args>
+    T& local(Args&&... args)
+    {
+        for (auto& e: pimpl_->local_data) {
+            if (e.type_index == &local_data<T>::id)
+                return *reinterpret_cast<T*>(e.get());
+        }
+
+        auto& e = *new local_data<T>(std::forward<Args>(args)...);
+        pimpl_->local_data.push_front(e);
+        return *e;
+    }
 
     // Private {{{
     std::shared_ptr<impl> pimpl_;

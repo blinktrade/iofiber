@@ -76,6 +76,7 @@ I used the opportunity to build a library with some more goodies:
   JavaScript background).
 * Proper support for completion handlers with any number of arguments.
 * `assert_exclusive_strand_ref<T>` to mark blocks where suspension is forbidden.
+* Fiber local storage.
 
 TODO:
 

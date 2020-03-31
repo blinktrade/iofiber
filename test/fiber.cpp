@@ -1070,3 +1070,40 @@ BOOST_AUTO_TEST_CASE(terminate_service3)
 
     BOOST_REQUIRE(context_aborted(ctx));
 }
+
+BOOST_AUTO_TEST_CASE(fiber_local_storage)
+{
+    asio::io_context ctx;
+
+    spawn(ctx, [](fiber::this_fiber this_fiber) {
+        auto& x = this_fiber.local<int>(4);
+        auto& y = this_fiber.local<char>('c');
+        BOOST_REQUIRE_EQUAL(x, 4);
+        BOOST_REQUIRE_EQUAL(y, 'c');
+        this_fiber.yield();
+        BOOST_REQUIRE_EQUAL(this_fiber.local<int>(), 4);
+        BOOST_REQUIRE_EQUAL(this_fiber.local<char>(), 'c');
+        x = 5;
+        y = 'b';
+        this_fiber.yield();
+        BOOST_REQUIRE_EQUAL(this_fiber.local<int>(), 5);
+        BOOST_REQUIRE_EQUAL(this_fiber.local<char>(), 'b');
+    }).detach();
+
+    spawn(ctx, [](fiber::this_fiber this_fiber) {
+        auto& x = this_fiber.local<int>(14);
+        auto& y = this_fiber.local<char>('f');
+        BOOST_REQUIRE_EQUAL(x, 14);
+        BOOST_REQUIRE_EQUAL(y, 'f');
+        this_fiber.yield();
+        BOOST_REQUIRE_EQUAL(this_fiber.local<int>(), 14);
+        BOOST_REQUIRE_EQUAL(this_fiber.local<char>(), 'f');
+        x = 15;
+        y = 'g';
+        this_fiber.yield();
+        BOOST_REQUIRE_EQUAL(this_fiber.local<int>(), 15);
+        BOOST_REQUIRE_EQUAL(this_fiber.local<char>(), 'g');
+    }).detach();
+
+    ctx.run();
+}
