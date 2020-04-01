@@ -24,7 +24,7 @@ enable_testing()
 macro(add_test_target target target_SRC)
   add_executable("${target}" "${target}.cpp" ${target_SRC})
 
-  set_property(TARGET "${target}" PROPERTY CXX_STANDARD 14)
+  set_property(TARGET "${target}" PROPERTY CXX_STANDARD 11)
   set_property(TARGET "${target}" PROPERTY CXX_STANDARD_REQUIRED ON)
 
   target_compile_definitions("${target}"

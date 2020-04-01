@@ -7,7 +7,6 @@
 #define TRIAL_IOFIBER_FIBER_H
 
 #include <stdexcept>
-#include <utility>
 #include <atomic>
 
 #include <boost/asio/async_result.hpp>
@@ -17,6 +16,8 @@
 #include <boost/context/fiber.hpp>
 
 #include <boost/intrusive/slist.hpp>
+
+#include <boost/mp11/integer_sequence.hpp>
 
 #include <boost/core/ignore_unused.hpp>
 
@@ -1008,7 +1009,7 @@ struct GetImpl<void>
 template<class IntrTrait, class Strand, class T, std::size_t... Idxs>
 void apply_on_result_impl(basic_this_fiber<Strand>& this_fiber,
                           boost::system::error_code& ec, T& args,
-                          std::index_sequence<Idxs...>)
+                          boost::mp11::index_sequence<Idxs...>)
 {
     IntrTrait::on_result(this_fiber, ec, std::get<Idxs>(args)...);
 }
@@ -1017,7 +1018,7 @@ template<class IntrTrait, class Strand, class... Args>
 void apply_on_result(basic_this_fiber<Strand> this_fiber,
                      boost::system::error_code& ec, std::tuple<Args...>& args)
 {
-    using Idxs = std::make_index_sequence<sizeof...(Args)>;
+    using Idxs = boost::mp11::make_index_sequence<sizeof...(Args)>;
     apply_on_result_impl<IntrTrait>(this_fiber, ec, args, Idxs{});
 }
 
@@ -1030,7 +1031,7 @@ void apply_on_result(basic_this_fiber<Strand> this_fiber,
 
 template<class IntrTrait, class Strand, class T, std::size_t... Idxs>
 void apply_on_result_impl(basic_this_fiber<Strand>& this_fiber, T& args,
-                          std::index_sequence<Idxs...>)
+                          boost::mp11::index_sequence<Idxs...>)
 {
     IntrTrait::on_result(this_fiber, std::get<Idxs>(args)...);
 }
@@ -1039,7 +1040,7 @@ template<class IntrTrait, class Strand, class... Args>
 void apply_on_result(basic_this_fiber<Strand> this_fiber,
                      std::tuple<Args...>& args)
 {
-    using Idxs = std::make_index_sequence<sizeof...(Args)>;
+    using Idxs = boost::mp11::make_index_sequence<sizeof...(Args)>;
     apply_on_result_impl<IntrTrait>(this_fiber, args, Idxs{});
 }
 

@@ -18,7 +18,7 @@ set(examples
 macro(add_example_target target)
   add_executable("${target}" "${target}.cpp")
 
-  set_property(TARGET "${target}" PROPERTY CXX_STANDARD 14)
+  set_property(TARGET "${target}" PROPERTY CXX_STANDARD 11)
   set_property(TARGET "${target}" PROPERTY CXX_STANDARD_REQUIRED ON)
 
   target_include_directories("${target}"
