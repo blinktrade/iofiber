@@ -63,8 +63,8 @@ use this library instead are:
 * Eventually you'll want communication among coroutines and that's when you'll
   want fibers vocabulary.
 * You may be able to work around ASIO's `yield` token by exploiting the token
-  protocol, but as soon as you try to implement `join()` or multi-strand
-  primitives you'll have a hard time.
+  protocol, but as soon as you try to implement `join()` or sync primitives that
+  work across different strands you'll have a hard time.
 
 I used the opportunity to build a library with some more goodies:
 
