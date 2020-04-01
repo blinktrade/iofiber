@@ -272,6 +272,9 @@ IMPORTANT: If you want to force the use of this safer `with_intr()` syntax and
 forbid plain `this_fiber` to work as a completion token, just define
 `TRIAL_IOFIBER_DISABLE_DEFAULT_INTERRUPTER`.
 
+NOTE: This token works only with asynchronous operations that make use of the
+`async_initiate()` helper function. `async_completion` is not supported.
+
 == Suspension points
 
 Fibers are scheduled cooperatively which means that CPU time is only transferred
