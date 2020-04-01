@@ -25,7 +25,7 @@ fib::fiber sleepsort(asio::io_context& ioctx, std::vector<int> v)
                     [i](fib::fiber::this_fiber this_fiber) {
                         asio::steady_timer timer{
                             this_fiber.get_executor().context()};
-                        timer.expires_from_now(chrono::seconds(i));
+                        timer.expires_after(chrono::seconds(i));
                         timer.async_wait(this_fiber);
 
                         cout << i << ' ' << std::flush;
