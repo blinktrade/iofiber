@@ -6,6 +6,7 @@
 #ifndef TRIAL_IOFIBER_FIBER_H
 #define TRIAL_IOFIBER_FIBER_H
 
+#include <type_traits>
 #include <stdexcept>
 #include <atomic>
 
@@ -71,7 +72,8 @@ template<class T>
 class local_data: public local_data_base
 {
 public:
-    static_assert(noexcept(~T()), "T can't throw");
+    static_assert(std::is_nothrow_destructible<T>::value,
+                  "Fiber local storage destructors can't throw");
 
     template<class... Args>
     local_data(Args&&... args)
