@@ -41,6 +41,39 @@ async_identity(CompletionToken&& token, Args&&... args)
     >(async_identity_initiation{}, token, std::forward<Args>(args)...);
 }
 
+struct async_never_finishes_initiation
+{
+    async_never_finishes_initiation(
+        bool& op_started, const asio::io_context::strand& strand)
+        : op_started(op_started)
+        , ex(strand)
+    {}
+
+    template<class Handler>
+    void operator()(Handler&&)
+    {
+        // Yeah, we're not calling handler. It is "never finishes" after all.
+        //
+        // Technically we should only initialize work guard here, when operation
+        // starts, and maintain it while the operation is in progress, but then
+        // the io_context would stay busy forever. The asio contract is broken
+        // for the purposes of IOFiber testability.
+        op_started = true;
+    }
+
+    bool& op_started;
+    asio::executor_work_guard<asio::io_context::strand> ex;
+};
+
+template<class CompletionToken>
+BOOST_ASIO_INITFN_RESULT_TYPE(CompletionToken, void())
+async_never_finishes(bool& op_started, CompletionToken&& token)
+{
+    return asio::async_initiate<CompletionToken, void()>(
+        async_never_finishes_initiation{op_started, token.get_executor()},
+        token);
+}
+
 struct dummy_io_object
 {
     template<class CompletionToken>
@@ -1022,6 +1055,46 @@ BOOST_AUTO_TEST_CASE(call_interrupt_on_invalid_fiber)
     ctx.run();
 
     BOOST_REQUIRE(f_finished);
+}
+
+// Async operations should not even initiate if an interruption request arrived.
+// This test will hang if implementation is buggy.
+BOOST_AUTO_TEST_CASE(interrupted_fiber_starting_async_op)
+{
+    asio::io_context ctx;
+    std::vector<int> events;
+    bool op_started = false;
+
+    auto f = spawn(ctx, [&](fiber::this_fiber this_fiber) {
+        {
+            fiber::this_fiber::disable_interruption di(this_fiber);
+            asio::steady_timer timer{this_fiber.get_executor().context()};
+            timer.expires_after(std::chrono::seconds(1));
+            events.push_back(0);
+            // guarantee that this fiber will know about the interruption
+            // request
+            timer.async_wait(this_fiber);
+        }
+        events.push_back(1);
+        this_fiber.interrupter = []() {
+            // Make sure we don't depend on the interrupter to cancel any
+            // operation. Essentially, we want to guarantee that operation won't
+            // even start.
+        };
+        async_never_finishes(op_started, this_fiber);
+        events.push_back(2);
+    });
+
+    f.interrupt();
+    f.detach();
+
+    ctx.run();
+
+    std::vector<int> expected_events;
+    expected_events.push_back(0);
+    expected_events.push_back(1);
+    BOOST_REQUIRE(!op_started);
+    BOOST_TEST(events == expected_events, boost::test_tools::per_element());
 }
 
 BOOST_AUTO_TEST_CASE(terminate_service)
