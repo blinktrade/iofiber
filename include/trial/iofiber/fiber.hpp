@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <atomic>
 
+#include <boost/asio/executor_work_guard.hpp>
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/strand.hpp>
@@ -518,23 +519,6 @@ public:
     std::shared_ptr<impl> pimpl_;
 
 private:
-    template<class Executor>
-    struct work_handle
-    {
-        work_handle(Executor& executor) : executor(executor)
-        {
-            executor.on_work_started();
-        }
-
-        ~work_handle()
-        {
-            executor.on_work_finished();
-        }
-
-    private:
-        Executor& executor;
-    };
-
     void same_strand_join(std::shared_ptr<impl> &active_coro)
     {
         if (!pimpl_->coro)
@@ -575,7 +559,7 @@ private:
             else
                 pimpl_->joiner_executor = std::move(awaker);
         }, std::allocator<void>{});
-        work_handle<Strand2> _w{joiner_pimpl->executor};
+        auto _w{boost::asio::make_work_guard(joiner_pimpl->executor)};
         boost::ignore_unused(_w);
         joiner_pimpl->coro = std::move(joiner_pimpl->coro).resume();
     }
