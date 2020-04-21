@@ -35,7 +35,7 @@ but syntactically less ugly and with a more standardized protocol/idiom].
   from Java API to C++-ify the API (e.g. name `interrupt()` instead
   `cancel()`, ...) and shoots a few ideas of its own.
 
-I've spent many hours researching before settling down on one single design. The
+I've spent long hours researching before settling down on a single design. The
 chosen design mainly borrows from POSIX thread cancellation API and
 Boost.Thread.
 
@@ -46,6 +46,13 @@ Other inspirations, even if minimal, were:
   `interruption_caught()`.
 * http://jehanne.io/2018/11/15/simplicity-awakes.html[Giacomo Tesio's awake
   syscall idea] was an inspiration to `this_fiber.interrupter` field.
+
+As for the interrupter traits (used in `this_fiber.with_intr()`), I didn't allow
+a stateful trait object because this object would be moved across the stages of
+the async operation and the user would stay unable to extract this info at the
+fiber wakeup anyway. If the user will have to resort to heap usage one way or
+another, he might just as well use fiber local storage and at least reuse these
+memory regions across async calls.
 
 == Fiber local storage
 
