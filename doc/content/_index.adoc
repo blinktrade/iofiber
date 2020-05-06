@@ -75,7 +75,7 @@ I used the opportunity to build a library with some more goodies:
 * Guaranteed post semantics (a.k.a. run-to-completion if you come from a
   JavaScript background).
 * Proper support for completion handlers with any number of arguments.
-* `assert_exclusive_strand_ref<T>` to mark blocks where suspension is forbidden.
+* `assert_excl_strand_ref<T>` to mark blocks where suspension is forbidden.
 * Fiber local storage.
 
 TODO:

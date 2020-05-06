@@ -1,5 +1,5 @@
 +++
-title = "assert_exclusive_strand_ref"
+title = "assert_excl_strand_ref"
 +++
 
 :_:
@@ -7,7 +7,7 @@ title = "assert_exclusive_strand_ref"
 [source,cpp]
 ----
 template<class T, class Strand = boost::asio::io_context::strand>
-class assert_exclusive_strand_ref;
+class assert_excl_strand_ref;
 ----
 
 [quote, Gor Nishanov, '<http://open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0171r0.html>']
@@ -67,9 +67,21 @@ proposed here. Real world usage of this async style led me to the same
 conclusion. Instead making `await` special, we make access to shared variables
 special. If a variable must not be modified/read by concurrent fibers in a
 critical section, we document our expectation using
-`assert_exclusive_strand_ref<T>`. It works just like an `assert()`. It won't add
+`assert_excl_strand_ref<T>`. It works just like an `assert()`. It won't add
 runtime penalty and we actually encode the knowledge of our expectation into the
 code.
+
+IMPORTANT: The key idea here is that when we replace preemptive multitasking by
+cooperative multitasking, we move some scheduling decisions from runtime to
+compile-time. So it is only natural that we also move related sync primitives
+from runtime to compile-time. The new sync primitives should be zero-cost and
+only determine if code will fail to compile. They should be understood as
+constraints.
+
+The name means the object is a **ref**erence. And within its *strand*, it should
+have **excl**usive access. The *assert* part is a reminder that it'll only do
+extra work in debug releases (I'd rather have static analysers to ensure this
+constraint... maybe in the future).
 
 Objects of this type are not movable nor copy-able. They are intimately tied to
 some lexical scope, so it makes sense to disable these operations on them. They
@@ -88,12 +100,12 @@ auto foo(string & s) {
 }
 ----
 
-Using `assert_exclusive_strand_ref<T>`, we can rewrite the code as follows:
+Using `assert_excl_strand_ref<T>`, we can rewrite the code as follows:
 
 [source,cpp]
 ----
 auto foo(string & s) {
-   assert_exclusive_strand_ref<string> s{s};
+   assert_excl_strand_ref<string> s{s};
    s->push_back('<');
    do-stuff
    s->push_back('>');
@@ -106,7 +118,7 @@ have to resort to the following code for this very library:
 [source,cpp]
 ----
 auto foo(string & s, fiber::this_fiber this_fiber) {
-   assert_exclusive_strand_ref<string> s{s, this_fiber};
+   assert_excl_strand_ref<string> s{s, this_fiber};
    s->push_back('<');
    do-stuff
    s->push_back('>');
@@ -161,15 +173,13 @@ comments. Before we reach any `async_write`, we must not have any suspension
 point or else `this->view` will reflect state unrelated to `state`. And when we
 do the necessary preparations to call `async_write`... well... we have to
 suspend the fiber. Where `\[[forbid_suspend]]` blocks would fail, we can resort
-to `assert_strand_exclusive_ref<T>`:
+to `assert_excl_strand_ref<T>`:
 
 [source,cpp]
 ----
 void MyApp::on_update(std::variant<A, B>& state, auto this_fiber)
 {
-    assert_exclusive_strand_ref<View> view{
-        this->view, this_fiber
-    };
+    assert_excl_strand_ref<View> view{this->view, this_fiber};
 
     std::visit([&](auto& e) {
         using T = std::decay_t<decltype(e)>;
@@ -190,7 +200,7 @@ void MyApp::on_update(std::variant<A, B>& state, auto this_fiber)
 }
 ----
 
-I have been using `assert_exclusive_strand_ref<T>` on othes places that requires
+I have been using `assert_excl_strand_ref<T>` on othes places that requires
 different patterns not similar to the previous one and so far it has been a good
 fit.
 
@@ -208,13 +218,13 @@ without any documentation/reason.
 [source,cpp]
 ----
 // Not available when T=void
-assert_exclusive_strand_ref(
+assert_excl_strand_ref(
     T& o,
     typename basic_fiber<Strand>::this_fiber& this_fiber
 );
 
 // Only available when T=void
-assert_exclusive_strand_ref(
+assert_excl_strand_ref(
     typename basic_fiber<Strand>::this_fiber& this_fiber
 );
 ----
@@ -227,7 +237,7 @@ Calls `this_fiber.forbid_suspend()`.
 
 [source,cpp]
 ----
-~assert_exclusive_strand_ref();
+~assert_excl_strand_ref();
 ----
 
 Calls `this_fiber.allow_suspend()` if watching some object.

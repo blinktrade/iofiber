@@ -135,7 +135,7 @@ only used to make calls to functions that potentially suspend and this defensive
 behaviour will make you less dependant of fully comprehensive tests.
 
 See also the
-link:../assert_exclusive_strand_ref/[`assert_exclusive_strand_ref(3)`] RAII
+link:../assert_excl_strand_ref/[`assert_excl_strand_ref(3)`] RAII
 helper.
 
 === `local()`

@@ -732,10 +732,10 @@ private:
 };
 
 template<class T, class Strand = boost::asio::io_context::strand>
-class assert_exclusive_strand_ref
+class assert_excl_strand_ref
 {
 public:
-    assert_exclusive_strand_ref(
+    assert_excl_strand_ref(
         T& o,
         typename basic_fiber<Strand>::this_fiber& this_fiber
     )
@@ -745,16 +745,15 @@ public:
         reset(o);
     }
 
-    ~assert_exclusive_strand_ref()
+    ~assert_excl_strand_ref()
     {
         release();
     }
 
     // This wrapper is always tied to a finite lexical scope. Its purpose is
     // *NOT* to manage lifetimes.
-    assert_exclusive_strand_ref(const assert_exclusive_strand_ref&) = delete;
-    assert_exclusive_strand_ref&
-    operator=(const assert_exclusive_strand_ref&) = delete;
+    assert_excl_strand_ref(const assert_excl_strand_ref&) = delete;
+    assert_excl_strand_ref& operator=(const assert_excl_strand_ref&) = delete;
 
     T& operator*() const
     {
@@ -788,26 +787,23 @@ private:
 };
 
 template<class Strand>
-class assert_exclusive_strand_ref<void, Strand>
+class assert_excl_strand_ref<void, Strand>
 {
 public:
-    assert_exclusive_strand_ref(
-        typename basic_fiber<Strand>::this_fiber& this_fiber
-    )
+    assert_excl_strand_ref(typename basic_fiber<Strand>::this_fiber& this_fiber)
         : obj(false)
         , this_fiber(this_fiber)
     {
         reset();
     }
 
-    ~assert_exclusive_strand_ref()
+    ~assert_excl_strand_ref()
     {
         release();
     }
 
-    assert_exclusive_strand_ref(const assert_exclusive_strand_ref&) = delete;
-    assert_exclusive_strand_ref&
-    operator=(const assert_exclusive_strand_ref&) = delete;
+    assert_excl_strand_ref(const assert_excl_strand_ref&) = delete;
+    assert_excl_strand_ref& operator=(const assert_excl_strand_ref&) = delete;
 
     void release()
     {
