@@ -23,10 +23,13 @@ template argument of the instantiation used.
 [source,cpp]
 ----
 this_fiber operator[](boost::system::error_code& ec) const;
+this_fiber operator[](std::nullptr_t) const;
 ----
 
 Will return a new `this_fiber` object which will fill `ec` instead throwing an
-exception when used as a completion token argument for `async_*` functions.
+exception when used as a completion token argument for `async_*` functions. If
+`nullptr` is passed, then the returned object will have the default
+exception-throwing behaviour.
 
 Example:
 
@@ -42,6 +45,20 @@ void start(fiber::this_fiber this_fiber)
   if (ec) {
     // ...
 ----
+
+=== `operator=()`
+
+[source,cpp]
+----
+this_fiber& operator=(const this_fiber& o);
+----
+
+Assigns ``o``'s `error_code` reporting behaviour (see `operator[]()`) to
+`*this`.
+
+.Preconditions
+
+`*this` and `o` are handles for the same fiber.
 
 === `get_executor()`
 

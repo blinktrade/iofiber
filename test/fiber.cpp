@@ -390,26 +390,37 @@ BOOST_AUTO_TEST_CASE(token)
         );
 
         // no exception
-        auto this_fiber2 = this_fiber[ec];
+        this_fiber = this_fiber[ec];
         boost::system::error_code ec2;
         BOOST_REQUIRE_EQUAL(
             ec, make_error_code(boost::system::errc::interrupted));
 
-        async_identity(this_fiber2, ec2);
+        async_identity(this_fiber, ec2);
         BOOST_REQUIRE(!ec);
-        BOOST_REQUIRE_EQUAL(async_identity(this_fiber2, ec2, 4), 4);
+        BOOST_REQUIRE_EQUAL(async_identity(this_fiber, ec2, 4), 4);
         BOOST_REQUIRE(!ec);
-        BOOST_REQUIRE(async_identity(this_fiber2, ec2, 4, 43)
+        BOOST_REQUIRE(async_identity(this_fiber, ec2, 4, 43)
                       == std::make_tuple(4, 43));
         BOOST_REQUIRE(!ec);
 
         ec2 = make_error_code(boost::system::errc::interrupted);
-        async_identity(this_fiber2, ec2);
+        async_identity(this_fiber, ec2);
         BOOST_REQUIRE_EQUAL(ec, ec2);
-        async_identity(this_fiber2, ec2, 3);
+        async_identity(this_fiber, ec2, 3);
         BOOST_REQUIRE_EQUAL(ec, ec2);
-        async_identity(this_fiber2, ec2, 3, 534);
+        async_identity(this_fiber, ec2, 3, 534);
         BOOST_REQUIRE_EQUAL(ec, ec2);
+
+        // re-enable exceptions
+        this_fiber = this_fiber[nullptr];
+        ec = make_error_code(boost::system::errc::interrupted);
+        BOOST_REQUIRE_EXCEPTION(
+            async_identity(this_fiber, ec),
+            boost::system::system_error,
+            [ec](const boost::system::system_error& e) {
+                return e.code() == ec;
+            }
+        );
 
         end = true;
     }).detach();

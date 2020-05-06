@@ -223,10 +223,24 @@ public:
     }
 #endif // NDEBUG
 
+    basic_this_fiber& operator=(const basic_this_fiber<Strand>& o)
+    {
+        assert(pimpl_ == o.pimpl_);
+        out_ec_ = o.out_ec_;
+        return *this;
+    }
+
     basic_this_fiber<Strand> operator[](boost::system::error_code &ec)
     {
         basic_this_fiber<Strand> ret{*this};
         ret.out_ec_ = &ec;
+        return std::move(ret);
+    }
+
+    basic_this_fiber<Strand> operator[](std::nullptr_t)
+    {
+        basic_this_fiber<Strand> ret{*this};
+        ret.out_ec_ = nullptr;
         return std::move(ret);
     }
 
