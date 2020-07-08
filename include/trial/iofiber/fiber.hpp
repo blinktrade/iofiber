@@ -48,7 +48,7 @@ using resume_token_type = std::uint32_t;
 template<class Strand, class IntrTrait>
 struct with_intr_token;
 
-class local_data_base
+class local_data_interface
     : public boost::intrusive::slist_base_hook<
 #ifdef NDEBUG
         boost::intrusive::link_mode<boost::intrusive::normal_link>
@@ -58,19 +58,19 @@ class local_data_base
     >
 {
 public:
-    local_data_base(void* type_index)
+    local_data_interface(void* type_index)
         : type_index(type_index)
     {}
 
     virtual void* get() = 0;
 
-    virtual ~local_data_base() noexcept = default;
+    virtual ~local_data_interface() noexcept = default;
 
     void* type_index;
 };
 
 template<class T>
-class local_data: public local_data_base
+class local_data: public local_data_interface
 {
 public:
     static_assert(std::is_nothrow_destructible<T>::value,
@@ -78,7 +78,7 @@ public:
 
     template<class... Args>
     local_data(Args&&... args)
-        : local_data_base(&id)
+        : local_data_interface(&id)
         , value(std::forward<Args>(args)...)
     {}
 
@@ -111,7 +111,7 @@ public:
 
         ~impl() noexcept
         {
-            local_data.clear_and_dispose([](local_data_base* p) { delete p; });
+            local_data.clear_and_dispose([](local_data_interface* p) { delete p; });
         }
 
         // Thread-safe. {{{
@@ -144,7 +144,7 @@ public:
         std::function<void()> joiner_executor;
 
         boost::intrusive::slist<
-            local_data_base,
+            local_data_interface,
             boost::intrusive::constant_time_size<false>,
             boost::intrusive::linear<true>,
             boost::intrusive::cache_last<false>
