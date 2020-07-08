@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en" itemscope itemtype="http://schema.org/WebPage">
+  <head>
+    
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+  <title>assert_exclusive_strand_ref - IOFiber</title>
+  <meta property="og:title" content="assert_exclusive_strand_ref" />
+  <meta name="twitter:title" content="assert_exclusive_strand_ref" />
+  <meta name="description" content="template&lt;class T, class Strand = boost::asio::io_context::strand&gt; class assert_exclusive_strand_ref;    In coroutines the suspend point is clearly marked with await, which tells the reader that something unusual happens in this function and allows the reader, for example, to confirm whether the lifetimes of the objects of interest align with the lifetime of the coroutine or not, whether some locks need to be acquired to protect some concurrently accessed data, and whether some locks need to be released before the execution reaches the suspend point.">
+  <meta property="og:description" content="template&lt;class T, class Strand = boost::asio::io_context::strand&gt; class assert_exclusive_strand_ref;    In coroutines the suspend point is clearly marked with await, which tells the reader that something unusual happens in this function and allows the reader, for example, to confirm whether the lifetimes of the objects of interest align with the lifetime of the coroutine or not, whether some locks need to be acquired to protect some concurrently accessed data, and whether some locks need to be released before the execution reaches the suspend point.">
+  <meta name="twitter:description" content="template&lt;class T, class Strand = boost::asio::io_context::strand&gt; class assert_exclusive_strand_ref;    In coroutines the suspend point is clearly marked with await, which tells the reader that …"><script type="application/ld+json">
+{
+    "@context": "http://schema.org",
+    "@type": "WebSite",
+    "name": "IOFiber",
+    
+    "url": "https:\/\/vinipsmaker.github.io\/iofiber\/"
+}
+</script><script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Organization",
+  "name": "",
+  "url": "https:\/\/vinipsmaker.github.io\/iofiber\/"
+  
+  
+  
+  
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [{
+        "@type": "ListItem",
+        "position": 1,
+        "item": {
+          "@id": "https:\/\/vinipsmaker.github.io\/iofiber\/",
+          "name": "home"
+        }
+    },{
+        "@type": "ListItem",
+        "position": 3,
+        "item": {
+          "@id": "https:\/\/vinipsmaker.github.io\/iofiber\/ref\/assert_exclusive_strand_ref\/",
+          "name": "Assert exclusive strand ref"
+        }
+    }]
+}
+</script><script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "author": {
+    "name" : ""
+  },
+  "headline": "assert_exclusive_strand_ref",
+  "description" : "template\x26lt;class T, class Strand = boost::asio::io_context::strand\x26gt; class assert_exclusive_strand_ref;    In coroutines the suspend point is clearly marked with await, which tells the reader that something unusual happens in this function and allows the reader, for example, to confirm whether the lifetimes of the objects of interest align with the lifetime of the coroutine or not, whether some locks need to be acquired to protect some concurrently accessed data, and whether some locks need to be released before the execution reaches the suspend point.",
+  "inLanguage" : "en",
+  "wordCount":  1206 ,
+  "datePublished" : "0001-01-01T00:00:00",
+  "dateModified" : "0001-01-01T00:00:00",
+  "image" : "https:\/\/vinipsmaker.github.io\/iofiber\/",
+  "keywords" : [ "" ],
+  "mainEntityOfPage" : "https:\/\/vinipsmaker.github.io\/iofiber\/ref\/assert_exclusive_strand_ref\/",
+  "publisher" : {
+    "@type": "Organization",
+    "name" : "https:\/\/vinipsmaker.github.io\/iofiber\/",
+    "logo" : {
+        "@type" : "ImageObject",
+        "url" : "https:\/\/vinipsmaker.github.io\/iofiber\/",
+        "height" :  60 ,
+        "width" :  60
+    }
+  }
+}
+</script>
+
+<meta property="og:title" content="assert_exclusive_strand_ref" />
+<meta property="og:description" content="template&lt;class T, class Strand = boost::asio::io_context::strand&gt; class assert_exclusive_strand_ref;    In coroutines the suspend point is clearly marked with await, which tells the reader that something unusual happens in this function and allows the reader, for example, to confirm whether the lifetimes of the objects of interest align with the lifetime of the coroutine or not, whether some locks need to be acquired to protect some concurrently accessed data, and whether some locks need to be released before the execution reaches the suspend point.">
+<meta property="og:url" content="https://vinipsmaker.github.io/iofiber/ref/assert_exclusive_strand_ref/" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="IOFiber" />
+  <meta name="twitter:title" content="assert_exclusive_strand_ref" />
+  <meta name="twitter:description" content="template&lt;class T, class Strand = boost::asio::io_context::strand&gt; class assert_exclusive_strand_ref;    In coroutines the suspend point is clearly marked with await, which tells the reader that …">
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:card" content="summary" />
+  <meta property="og:url" content="https://vinipsmaker.github.io/iofiber/ref/assert_exclusive_strand_ref/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="IOFiber" />
+
+  <meta name="generator" content="Hugo 0.62.0" />
+  <link rel="alternate" href="https://vinipsmaker.github.io/iofiber/index.xml" type="application/rss+xml" title="IOFiber">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://vinipsmaker.github.io/iofiber/css/main.css" /><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" />
+  <link rel="stylesheet" href="https://vinipsmaker.github.io/iofiber/css/highlight.min.css" /><link rel="stylesheet" href="https://vinipsmaker.github.io/iofiber/css/codeblock.css" /><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/photoswipe.min.css" integrity="sha384-h/L2W9KefUClHWaty3SLE5F/qvc4djlyR4qY3NUV5HGQBBW7stbcfff1+I/vmsHh" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/default-skin/default-skin.min.css" integrity="sha384-iD0dNku6PYSIQLyfTOpB06F2KCZJAKLOThS5HRe8b3ibhdEQ6eKsFf/EeFxdOt5R" crossorigin="anonymous">
+
+
+
+  </head>
+  <body>
+    <nav class="navbar navbar-default navbar-fixed-top navbar-custom">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#main-navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="https://vinipsmaker.github.io/iofiber/">IOFiber</a>
+    </div>
+
+    <div class="collapse navbar-collapse" id="main-navbar">
+      <ul class="nav navbar-nav navbar-right">
+        
+          
+            <li>
+              <a title="Tutorials(7)" href="/iofiber/tutorial/">Tutorials(7)</a>
+            </li>
+          
+        
+          
+            <li>
+              <a title="Reference(3)" href="/iofiber/ref/">Reference(3)</a>
+            </li>
+          
+        
+
+        
+
+        
+      </ul>
+    </div>
+
+    
+
+  </div>
+</nav>
+
+
+
+
+    
+
+
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+<div class="pswp__bg"></div>
+
+<div class="pswp__scroll-wrap">
+    
+    <div class="pswp__container">
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+    </div>
+    
+    <div class="pswp__ui pswp__ui--hidden">
+    <div class="pswp__top-bar">
+      
+      <div class="pswp__counter"></div>
+      <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+      <button class="pswp__button pswp__button--share" title="Share"></button>
+      <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+      <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+      
+      
+      <div class="pswp__preloader">
+        <div class="pswp__preloader__icn">
+          <div class="pswp__preloader__cut">
+            <div class="pswp__preloader__donut"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+      <div class="pswp__share-tooltip"></div>
+    </div>
+    <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+    </button>
+    <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+    </button>
+    <div class="pswp__caption">
+      <div class="pswp__caption__center"></div>
+    </div>
+    </div>
+    </div>
+</div>
+
+
+  
+  
+  
+
+
+
+
+
+
+  
+
+  <header class="header-section ">
+    
+    <div class="intro-header no-img">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+            <div class="ref-heading">
+              
+                <h1>assert_exclusive_strand_ref</h1>
+              
+              
+                <hr class="small">
+              
+              
+              
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+
+    
+<div class="container" role="main">
+  <div class="row">
+    <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+      <article role="main" class="blog-post">
+        <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">template&lt;class T, class Strand = boost::asio::io_context::strand&gt;
+class assert_exclusive_strand_ref;</code></pre>
+</div>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>In coroutines the suspend point is clearly marked with <code>await</code>, which tells the
+reader that something unusual happens in this function and allows the reader,
+for example, to confirm whether the lifetimes of the objects of interest align
+with the lifetime of the coroutine or not, whether some locks need to be
+acquired to protect some concurrently accessed data, and whether some locks need
+to be released before the execution reaches the suspend point.</p>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; Gor Nishanov<br>
+<cite><a href="http://open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0171r0.html" class="bare">http://open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0171r0.html</a></cite>
+</div>
+</div>
+<div class="paragraph">
+<p>Our concurrency problems don&#8217;t vanish when we adopt coroutines. It is very easy
+— even seductive — to abuse cooperative multitasking in a way we spare many
+round-trips to synchronization primitives when we want to touch shared
+variables.</p>
+</div>
+<div class="paragraph">
+<p>The lack of synchronization logic may even be seen as desired as we also dismiss
+the associated complexity that might hinder (maybe just a little of)
+performance.</p>
+</div>
+<div class="paragraph">
+<p>What we also bring to our homes together with such supposedly performance gains
+is a headache of unmaintainable code. Advocates of the <code>await</code> keyword suggest
+we should read code paying attention to all suspension points. It is a
+suggestion that makes every coroutined suspension code equally hard to read. I
+don&#8217;t know which <code>await</code> directives are safe or not. I&#8217;m not the writer of these
+codes. How can I know what is a safe access? The information isn&#8217;t there until I
+fully understand the code and the surrounding context (and productivity is lost
+in the process). This has been observed before:</p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>Where now, within the scope of the process we&#8217;re in, we know that we are only
+allowing anything else to happen at the bottom, when we call <code>yield from
+server.update_balances()</code>. There is no chance that any other concurrent calls to
+<code>payer.withdraw()</code> can occur while we&#8217;re in the function&#8217;s body and have not yet
+reached the <code>server.update_balances()</code> call.</p>
+</div>
+<div class="paragraph">
+<p>He then makes a clear point as to why even the implicit gevent-style async isn&#8217;t
+sufficient. Because with the above program, the fact that <code>payee.deposit()</code> and
+<code>payer.withdraw()</code> do not do a <code>yield from</code>, we are assured that no IO might
+occur in future versions of these calls which would break into our scheduling
+and potentially run another <code>transfer()</code> before ours is complete.</p>
+</div>
+<div class="paragraph">
+<p>(As an aside, I&#8217;m not actually sure, in the realm of "we had to type <code>yield
+from</code> and that&#8217;s how we stay aware of what&#8217;s going on", why the <code>yield from</code>
+needs to be a real, structural part of the program and not just, for example, a
+magic comment consumed by a gevent/eventlet-integrated linter that tests
+callstacks for IO and verifies that the corresponding source code has been
+annotated with special comments, as that would have the identical effect without
+impacting any libraries outside of that system and without incurring all the
+Python performance overhead of explicit async. But that&#8217;s a different topic.)</p>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; Mike Bayer<br>
+<cite><a href="https://techspot.zzzeek.org/2015/02/15/asynchronous-python-and-databases/" class="bare">https://techspot.zzzeek.org/2015/02/15/asynchronous-python-and-databases/</a></cite>
+</div>
+</div>
+<div class="paragraph">
+<p>I only found out about this opinion much later, but that&#8217;s basically what is
+proposed here. Real world usage of this async style led me to the same
+conclusion. Instead making <code>await</code> special, we make access to shared variables
+special. If a variable must not be modified/read by concurrent fibers in a
+critical section, we document our expectation using
+<code>assert_exclusive_strand_ref&lt;T&gt;</code>. It works just like an <code>assert()</code>. It won&#8217;t add
+runtime penalty and we actually encode the knowledge of our expectation into the
+code.</p>
+</div>
+<div class="paragraph">
+<p>Objects of this type are not movable nor copy-able. They are intimately tied to
+some lexical scope, so it makes sense to disable these operations on them. They
+don&#8217;t manage lifetime and their state can be completely inferred from the
+surrounding code, so we don&#8217;t provide some common helpers either (e.g. <code>operator
+bool</code>).</p>
+</div>
+<div class="paragraph">
+<p>P0171R0 had the following example to illustrate the original argument:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">auto foo(string &amp; s) {
+   s.push_back('&lt;');
+   do-stuff
+   s.push_back('&gt;');
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Using <code>assert_exclusive_strand_ref&lt;T&gt;</code>, we can rewrite the code as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">auto foo(string &amp; s) {
+   assert_exclusive_strand_ref&lt;string&gt; s{s};
+   s-&gt;push_back('&lt;');
+   do-stuff
+   s-&gt;push_back('&gt;');
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>But given the <code>await</code>-less coroutine support is absent in the language-level, we
+have to resort to the following code for this very library:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">auto foo(string &amp; s, fiber::this_fiber this_fiber) {
+   assert_exclusive_strand_ref&lt;string&gt; s{s, this_fiber};
+   s-&gt;push_back('&lt;');
+   do-stuff
+   s-&gt;push_back('&gt;');
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The code presented is actually pretty simple as all we need is to delimit a
+<em>forbid-suspend</em> block. In fact, my previous attempt to solve the problem over a
+year ago relied on a very stupid static analyser implemented on top of the
+Python bindings for the LLVM
+project<sup class="footnote">[<a id="_footnoteref_1" class="footnote" href="#_footnotedef_1" title="View footnote.">1</a>]</sup>. Using
+such script, the solution would actually be:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">auto foo(string &amp; s) {
+   [[forbid_suspend]] {
+      s.push_back('&lt;');
+      do-stuff
+      s.push_back('&gt;');
+   }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>But from personal experience working daily on a project heavily based on
+Boost.Asio and fibers, the block approach showed itself unable to handle more
+complex cases as I hit cases where I&#8217;d need to enable suspension again in the
+middle of the block. One of the cases that best illustrate the limitation can be
+reduced as:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">void MyApp::on_update(std::variant&lt;A, B&gt;&amp; state, auto this_fiber)
+{
+    std::visit([&amp;](auto&amp; e) {
+        using T = std::decay_t&lt;decltype(e)&gt;;
+        if constexpr (std::is_same_v&lt;T, A&gt;) {
+            auto msg = generate_msg(this-&gt;view, e);
+            foo.async_write(msg, this_fiber);
+            // from here we shouldn't touch `this-&gt;view` again
+        } else if constexpr (std::is_same_v&lt;T, B&gt;) {
+            auto msg = generate_msg(this-&gt;view, e);
+            bar.async_write(msg, this_fiber);
+            // from here we shouldn't touch `this-&gt;view` again
+        }
+    }, state);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The original code was 77 lines long. From this count, 24 lines were dense
+comments. Before we reach any <code>async_write</code>, we must not have any suspension
+point or else <code>this&#8594;view</code> will reflect state unrelated to <code>state</code>. And when we
+do the necessary preparations to call <code>async_write</code>&#8230;&#8203; well&#8230;&#8203; we have to
+suspend the fiber. Where <code>[[forbid_suspend]]</code> blocks would fail, we can resort
+to <code>assert_strand_exclusive_ref&lt;T&gt;</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">void MyApp::on_update(std::variant&lt;A, B&gt;&amp; state, auto this_fiber)
+{
+    assert_exclusive_strand_ref&lt;View&gt; view{
+        this-&gt;view, this_fiber
+    };
+
+    std::visit([&amp;](auto&amp; e) {
+        using T = std::decay_t&lt;decltype(e)&gt;;
+        if constexpr (std::is_same_v&lt;T, A&gt;) {
+            auto msg = generate_msg(*view, e); //&lt; NEW
+            view.release();                    //&lt; NEW
+            foo.async_write(msg, this_fiber);
+            // any attempts to dereference `view`
+            // here will fail *loudly*
+        } else if constexpr (std::is_same_v&lt;T, B&gt;) {
+            auto msg = generate_msg(*view, e); //&lt; NEW
+            view.release();                    //&lt; NEW
+            bar.async_write(msg, this_fiber);
+            // any attempts to dereference `view`
+            // here will fail *loudly*
+        }
+    }, state);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>I have been using <code>assert_exclusive_strand_ref&lt;T&gt;</code> on othes places that requires
+different patterns not similar to the previous one and so far it has been a good
+fit.</p>
+</div>
+<div class="paragraph">
+<p>A nice collateral effect is it encodes the <em>reason</em> why/when a fiber can&#8217;t
+suspend. It definitively made the code much easier to follow and more
+maintainable.</p>
+</div>
+<div class="paragraph">
+<p>A <code>void</code> specialization is provided to cover smaller blocks where we can go
+without any documentation/reason.</p>
+</div>
+<div class="sect1">
+<h2 id="_member_functions">Member-functions</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_constructor"><em>Constructor</em></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">// Not available when T=void
+assert_exclusive_strand_ref(
+    T&amp; o,
+    typename basic_fiber&lt;Strand&gt;::this_fiber&amp; this_fiber
+);
+
+// Only available when T=void
+assert_exclusive_strand_ref(
+    typename basic_fiber&lt;Strand&gt;::this_fiber&amp; this_fiber
+);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Watches <code>o</code> and stores a reference (not a copy) to <code>this_fiber</code>.</p>
+</div>
+<div class="paragraph">
+<p>Calls <code>this_fiber.forbid_suspend()</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_destructor"><em>Destructor</em></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">~assert_exclusive_strand_ref();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Calls <code>this_fiber.allow_suspend()</code> if watching some object.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_operator"><code>operator*()</code></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">// Not available when T=void
+T&amp; operator*() const;
+T* operator-&gt;() const;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Dereferences pointer to the watched object.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release"><code>release()</code></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">void release();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Releases the pointer of the watched object. If there was a watched object
+previously, will also call <code>this_fiber.allow_suspend()</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_reset"><code>reset()</code></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">// Not available when T=void
+void reset(T&amp; o);
+
+// Only available when T=void
+void reset();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Watches <code>o</code>. If there was no watched object previously, will also call
+<code>this_fiber.forbid_suspend()</code>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">See also</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><code>this_fiber.forbid_suspend()</code></p>
+</li>
+<li>
+<p><code>this_fiber.allow_suspend()</code></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div id="footnotes">
+<hr>
+<div class="footnote" id="_footnotedef_1">
+<a href="#_footnoteref_1">1</a>. <a href="https://gist.github.com/vinipsmaker2/d930fbe5b7597432b021effe618da171" class="bare">https://gist.github.com/vinipsmaker2/d930fbe5b7597432b021effe618da171</a>
+</div>
+</div>
+
+
+        
+
+        
+
+        
+      </article>
+
+      
+        <ul class="pager blog-pager">
+          
+            <li class="previous">
+              <a href="https://vinipsmaker.github.io/iofiber/ref/condition_variable/" data-toggle="tooltip" data-placement="top" title="condition_variable">&larr; Previous Post</a>
+            </li>
+          
+          
+        </ul>
+      
+
+
+      
+
+    </div>
+  </div>
+</div>
+
+    <footer>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+        <ul class="list-inline text-center footer-links">
+          
+          
+        </ul>
+        <p class="credits copyright text-muted">
+          
+
+          &nbsp;&bull;&nbsp;&copy;
+          
+            0001
+          
+
+          
+            &nbsp;&bull;&nbsp;
+            <a href="https://vinipsmaker.github.io/iofiber/">IOFiber</a>
+          
+        </p>
+        
+        <p class="credits theme-by text-muted">
+          <a href="http://gohugo.io">Hugo v0.62.0</a> powered &nbsp;&bull;&nbsp; Theme by <a href="http://deanattali.com/beautiful-jekyll/">Beautiful Jekyll</a> adapted to <a href="https://github.com/halogenica/beautifulhugo">Beautiful Hugo</a>
+          
+        </p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.js" integrity="sha384-K3vbOmF2BtaVai+Qk37uypf7VrgBubhQreNQe9aGsz9lB63dIFiQVlJbr92dw2Lx" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/contrib/auto-render.min.js" integrity="sha384-kmZOZB5ObwgQnS/DuDg6TScgOiWWBiVt0plIRkZCmE6rDZGrEOQeHM5PcHi+nyqe" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="https://vinipsmaker.github.io/iofiber/js/main.js"></script>
+<script src="https://vinipsmaker.github.io/iofiber/js/highlight.min.js"></script>
+<script> hljs.initHighlightingOnLoad(); </script>
+<script> $(document).ready(function() {$("pre.chroma").css("padding","0");}); </script><script> renderMathInElement(document.body); </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/photoswipe.min.js" integrity="sha384-QELNnmcmU8IR9ZAykt67vGr9/rZJdHbiWi64V88fCPaOohUlHCqUD/unNN0BXSqy" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/photoswipe-ui-default.min.js" integrity="sha384-m67o7SkQ1ALzKZIFh4CiTA8tmadaujiTa9Vu+nqPSwDOqHrDmxLezTdFln8077+q" crossorigin="anonymous"></script>
+<script src="https://vinipsmaker.github.io/iofiber/js/load-photoswipe.js"></script>
+
+
+
+
+
+
+
+
+  </body>
+</html>
+

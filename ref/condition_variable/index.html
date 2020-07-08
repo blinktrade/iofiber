@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en" itemscope itemtype="http://schema.org/WebPage">
+  <head>
+    
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+  <title>condition_variable - IOFiber</title>
+  <meta property="og:title" content="condition_variable" />
+  <meta name="twitter:title" content="condition_variable" />
+  <meta name="description" content="template&lt;class Strand&gt; class basic_condition_variable; using condition_variable = basic_condition_variable&lt;boost::asio::io_context::strand&gt;;   As in Boost.Fiber:
+  The class condition_variable provides a mechanism for a fiber to wait for notification from another fiber. When the fiber awakens from the wait, then it checks to see if the appropriate condition is now true, and continues if so. If the condition is not true, then the fiber calls wait again to resume waiting. In the simplest case, this condition is just a boolean variable.">
+  <meta property="og:description" content="template&lt;class Strand&gt; class basic_condition_variable; using condition_variable = basic_condition_variable&lt;boost::asio::io_context::strand&gt;;   As in Boost.Fiber:
+  The class condition_variable provides a mechanism for a fiber to wait for notification from another fiber. When the fiber awakens from the wait, then it checks to see if the appropriate condition is now true, and continues if so. If the condition is not true, then the fiber calls wait again to resume waiting. In the simplest case, this condition is just a boolean variable.">
+  <meta name="twitter:description" content="template&lt;class Strand&gt; class basic_condition_variable; using condition_variable = basic_condition_variable&lt;boost::asio::io_context::strand&gt;;   As in Boost.Fiber:
+  The class …"><script type="application/ld+json">
+{
+    "@context": "http://schema.org",
+    "@type": "WebSite",
+    "name": "IOFiber",
+    
+    "url": "https:\/\/vinipsmaker.github.io\/iofiber\/"
+}
+</script><script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Organization",
+  "name": "",
+  "url": "https:\/\/vinipsmaker.github.io\/iofiber\/"
+  
+  
+  
+  
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [{
+        "@type": "ListItem",
+        "position": 1,
+        "item": {
+          "@id": "https:\/\/vinipsmaker.github.io\/iofiber\/",
+          "name": "home"
+        }
+    },{
+        "@type": "ListItem",
+        "position": 3,
+        "item": {
+          "@id": "https:\/\/vinipsmaker.github.io\/iofiber\/ref\/condition_variable\/",
+          "name": "Condition variable"
+        }
+    }]
+}
+</script><script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "author": {
+    "name" : ""
+  },
+  "headline": "condition_variable",
+  "description" : "template\u0026lt;class Strand\u0026gt; class basic_condition_variable; using condition_variable = basic_condition_variable\u0026lt;boost::asio::io_context::strand\u0026gt;;   As in Boost.Fiber:\n  The class condition_variable provides a mechanism for a fiber to wait for notification from another fiber. When the fiber awakens from the wait, then it checks to see if the appropriate condition is now true, and continues if so. If the condition is not true, then the fiber calls wait again to resume waiting. In the simplest case, this condition is just a boolean variable.",
+  "inLanguage" : "en",
+  "wordCount":  687 ,
+  "datePublished" : "0001-01-01T00:00:00",
+  "dateModified" : "0001-01-01T00:00:00",
+  "image" : "https:\/\/vinipsmaker.github.io\/iofiber\/",
+  "keywords" : [ "" ],
+  "mainEntityOfPage" : "https:\/\/vinipsmaker.github.io\/iofiber\/ref\/condition_variable\/",
+  "publisher" : {
+    "@type": "Organization",
+    "name" : "https:\/\/vinipsmaker.github.io\/iofiber\/",
+    "logo" : {
+        "@type" : "ImageObject",
+        "url" : "https:\/\/vinipsmaker.github.io\/iofiber\/",
+        "height" :  60 ,
+        "width" :  60
+    }
+  }
+}
+</script>
+
+<meta property="og:title" content="condition_variable" />
+<meta property="og:description" content="template&lt;class Strand&gt; class basic_condition_variable; using condition_variable = basic_condition_variable&lt;boost::asio::io_context::strand&gt;;   As in Boost.Fiber:
+  The class condition_variable provides a mechanism for a fiber to wait for notification from another fiber. When the fiber awakens from the wait, then it checks to see if the appropriate condition is now true, and continues if so. If the condition is not true, then the fiber calls wait again to resume waiting. In the simplest case, this condition is just a boolean variable.">
+<meta property="og:url" content="https://vinipsmaker.github.io/iofiber/ref/condition_variable/" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="IOFiber" />
+  <meta name="twitter:title" content="condition_variable" />
+  <meta name="twitter:description" content="template&lt;class Strand&gt; class basic_condition_variable; using condition_variable = basic_condition_variable&lt;boost::asio::io_context::strand&gt;;   As in Boost.Fiber:
+  The class …">
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:card" content="summary" />
+  <meta property="og:url" content="https://vinipsmaker.github.io/iofiber/ref/condition_variable/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="IOFiber" />
+
+  <meta name="generator" content="Hugo 0.73.0" />
+  <link rel="alternate" href="https://vinipsmaker.github.io/iofiber/index.xml" type="application/rss+xml" title="IOFiber">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://vinipsmaker.github.io/iofiber/css/main.css" /><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" />
+  <link rel="stylesheet" href="https://vinipsmaker.github.io/iofiber/css/highlight.min.css" /><link rel="stylesheet" href="https://vinipsmaker.github.io/iofiber/css/codeblock.css" /><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/photoswipe.min.css" integrity="sha384-h/L2W9KefUClHWaty3SLE5F/qvc4djlyR4qY3NUV5HGQBBW7stbcfff1+I/vmsHh" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/default-skin/default-skin.min.css" integrity="sha384-iD0dNku6PYSIQLyfTOpB06F2KCZJAKLOThS5HRe8b3ibhdEQ6eKsFf/EeFxdOt5R" crossorigin="anonymous">
+
+
+
+  </head>
+  <body>
+    <nav class="navbar navbar-default navbar-fixed-top navbar-custom">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#main-navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="https://vinipsmaker.github.io/iofiber/">IOFiber</a>
+    </div>
+
+    <div class="collapse navbar-collapse" id="main-navbar">
+      <ul class="nav navbar-nav navbar-right">
+        
+          
+            <li>
+              <a title="Tutorials(7)" href="/iofiber/tutorial/">Tutorials(7)</a>
+            </li>
+          
+        
+          
+            <li>
+              <a title="Reference(3)" href="/iofiber/ref/">Reference(3)</a>
+            </li>
+          
+        
+
+        
+
+        
+      </ul>
+    </div>
+
+    
+
+  </div>
+</nav>
+
+
+
+
+    
+
+
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+<div class="pswp__bg"></div>
+
+<div class="pswp__scroll-wrap">
+    
+    <div class="pswp__container">
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+    </div>
+    
+    <div class="pswp__ui pswp__ui--hidden">
+    <div class="pswp__top-bar">
+      
+      <div class="pswp__counter"></div>
+      <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+      <button class="pswp__button pswp__button--share" title="Share"></button>
+      <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+      <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+      
+      
+      <div class="pswp__preloader">
+        <div class="pswp__preloader__icn">
+          <div class="pswp__preloader__cut">
+            <div class="pswp__preloader__donut"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+      <div class="pswp__share-tooltip"></div>
+    </div>
+    <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+    </button>
+    <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+    </button>
+    <div class="pswp__caption">
+      <div class="pswp__caption__center"></div>
+    </div>
+    </div>
+    </div>
+</div>
+
+
+  
+  
+  
+
+
+
+
+
+
+  
+
+  <header class="header-section ">
+    
+    <div class="intro-header no-img">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+            <div class="ref-heading">
+              
+                <h1>condition_variable</h1>
+              
+              
+                <hr class="small">
+              
+              
+              
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+
+    
+<div class="container" role="main">
+  <div class="row">
+    <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+      <article role="main" class="blog-post">
+        <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">template&lt;class Strand&gt;
+class basic_condition_variable;
+
+using condition_variable
+    = basic_condition_variable&lt;boost::asio::io_context::strand&gt;;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As in Boost.Fiber:</p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>The class <code>condition_variable</code> provides a mechanism for a fiber to wait for
+notification from another fiber. When the fiber awakens from the wait, then it
+checks to see if the appropriate condition is now true, and continues if so. If
+the condition is not true, then the fiber calls <code>wait</code> again to resume
+waiting. In the simplest case, this condition is just a boolean variable.</p>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; <a href="https://www.boost.org/doc/libs/1_71_0/libs/fiber/doc/html/fiber/synchronization/conditions.html" class="bare">https://www.boost.org/doc/libs/1_71_0/libs/fiber/doc/html/fiber/synchronization/conditions.html</a>
+</div>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>[&#8230;&#8203;] synchronization objects can neither be moved nor copied. A synchronization
+object acts as a mutually-agreed rendezvous point between different fibers. If
+such an object were copied somewhere else, the new copy would have no
+consumers. If such an object were <em>moved</em> somewhere else, leaving the original
+instance in an unspecified state, existing consumers would behave strangely.</p>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; <a href="https://www.boost.org/doc/libs/1_71_0/libs/fiber/doc/html/fiber/synchronization.html" class="bare">https://www.boost.org/doc/libs/1_71_0/libs/fiber/doc/html/fiber/synchronization.html</a>
+</div>
+</div>
+<div class="paragraph">
+<p>This is a classic synchronization primitive. There&#8217;s not much to add. Plenty of
+documentation and works the same everywhere. Here I&#8217;ll mostly only note the
+differences.</p>
+</div>
+<div class="sect1">
+<h2 id="_spurious_wakeups">Spurious Wakeups</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Boost.Fiber offers the following guarantee:</p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>Neither <code>condition_variable</code> nor <code>condition_variable_any</code> are subject to
+spurious wakeup: <code>condition_variable::wait()</code> can only wake up when
+<code>condition_variable::notify_one()</code> or <code>condition_variable::notify_all()</code> is
+called.</p>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; <a href="https://www.boost.org/doc/libs/1_71_0/libs/fiber/doc/html/fiber/synchronization.html" class="bare">https://www.boost.org/doc/libs/1_71_0/libs/fiber/doc/html/fiber/synchronization.html</a>
+</div>
+</div>
+<div class="paragraph">
+<p>This guarantee doesn&#8217;t apply to IOFiber. Thanks to a more complex interaction of
+event flows (we also need to implement interruption requests), <strong>IOFiber may on
+rare occasions perform spurious wakeups</strong>. Therefore, the predicate must be
+re-evaluated upon return.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_wait_with_a_deadline">Wait with a deadline</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>There is no <code>timedwait()</code> in this class. You can easily have the equivalent
+effect using the interruption API, so it&#8217;s redundant. But if a PR is open to add
+this feature, I might accept it.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_strands">Strands</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Objects of this class are protected through a strand (specified in the
+constructor). The strand must be the same one associated with the mutex whose
+this condition variable will have a dynamic bind with, otherwise behaviour is
+undefined.</p>
+</div>
+<div class="paragraph">
+<p>If the condition variable, the notifier fiber and the waiting fiber all run in
+the same strand, then there is enough level of determinism to lift one
+restriction that exists in traditional condition variables.</p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>Even if the shared variable is atomic, it must be modified under the mutex in
+order to correctly publish the modification to the waiting thread.</p>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; <a href="https://en.cppreference.com/w/cpp/thread/condition_variable" class="bare">https://en.cppreference.com/w/cpp/thread/condition_variable</a>
+</div>
+</div>
+<div class="paragraph">
+<p>The reason why this restriction on the notifier thread exists is to avoid a
+race. Consider the waiter thread and the notifier thread:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>void consumer()
+{
+    std::unique_lock&lt;std::mutex&gt; lk(m);
+    while (!ready) cond.wait(lk);
+    // ...
+}
+
+void producer()
+{
+    ready = true;
+    cond.notify_one();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Pay attention to the points when the waiter thread checks if the event has been
+signalled by testing <code>ready</code> and the instant it blocks on <code>cond.wait()</code>. If the
+notifier thread mutates the shared variable and calls <code>cond.notify_one()</code>
+between these two points, then the signalization is lost. <code>cond.notify_one()</code>
+would be called by the time there would be no thread blocked on <code>cond.wait()</code>.
+That&#8217;s why the notifier thread need to mutate the shared variable through a
+mutex.</p>
+</div>
+<div class="paragraph">
+<p>If the condition variable, the notifier fiber and the waiting fiber all run in
+the same strand, then this restriction isn&#8217;t required (as long as there are no
+suspension points between the time the waiting fiber tests the condition and
+calls <code>cond.wait()</code>) and the notifier fiber can mutate the shared variable
+without holding a lock on the mutex. In this case, the condition variable
+essentially becomes a non-suspending way (post semantics) to unpark a parked
+fiber.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_member_functions">Member-functions</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_constructor"><em>Constructor</em></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">basic_condition_variable(executor_type executor);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Constructs a new condition variable.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_desstructor"><em>Desstructor</em></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">~basic_condition_variable();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Destructs the condition variable.</p>
+</div>
+<div class="paragraph">
+<p>As in Boost.Fiber:</p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p><strong>Precondition</strong>: All fibers waiting on <code>*this</code> have been notified by a call to
+<code>notify_one</code> or <code>notify_all</code> (though the respective calls to <code>wait</code> [&#8230;&#8203;] need
+not have returned).</p>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; <a href="https://www.boost.org/doc/libs/1_72_0/libs/fiber/doc/html/fiber/synchronization/conditions.html#fiber.synchronization.conditions.destructor0" class="bare">https://www.boost.org/doc/libs/1_72_0/libs/fiber/doc/html/fiber/synchronization/conditions.html#fiber.synchronization.conditions.destructor0</a>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_get_executor"><code>get_executor()</code></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">executor_type get_executor() const;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Returns the strand associated with this condition variable.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_wait"><code>wait()</code></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">void wait(basic_unique_lock&lt;Strand&gt;&amp; lk, fiber::this_fiber this_fiber);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Atomically call <code>lk.unlock()</code> and blocks the current fiber.</p>
+</div>
+<div class="paragraph">
+<p><code>wait()</code> is an interruption point. Prior to the delivery of the interruption
+request, the underlying mutex is re-acquired under the hood.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_notify"><code>notify_*()</code></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">void notify_one();
+void notify_all();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If any fibers are currently blocked waiting on <code>*this</code> in a call to <code>wait()</code>,
+unblocks one/all of those fibers.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_nested_types">Nested types</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_executor_type"><code>executor_type</code></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">using executor_type = Strand;</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+
+        
+
+        
+
+        
+      </article>
+
+      
+        <ul class="pager blog-pager">
+          
+            <li class="previous">
+              <a href="https://vinipsmaker.github.io/iofiber/ref/fiber/" data-toggle="tooltip" data-placement="top" title="fiber">&larr; Previous Post</a>
+            </li>
+          
+          
+            <li class="next">
+              <a href="https://vinipsmaker.github.io/iofiber/ref/assert_excl_strand_ref/" data-toggle="tooltip" data-placement="top" title="assert_excl_strand_ref">Next Post &rarr;</a>
+            </li>
+          
+        </ul>
+      
+
+
+      
+
+    </div>
+  </div>
+</div>
+
+    <footer>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+        <ul class="list-inline text-center footer-links">
+          
+          
+        </ul>
+        <p class="credits copyright text-muted">
+          
+
+          &nbsp;&bull;&nbsp;&copy;
+          
+            0001
+          
+
+          
+            &nbsp;&bull;&nbsp;
+            <a href="https://vinipsmaker.github.io/iofiber/">IOFiber</a>
+          
+        </p>
+        
+        <p class="credits theme-by text-muted">
+          <a href="http://gohugo.io">Hugo v0.73.0</a> powered &nbsp;&bull;&nbsp; Theme by <a href="http://deanattali.com/beautiful-jekyll/">Beautiful Jekyll</a> adapted to <a href="https://github.com/halogenica/beautifulhugo">Beautiful Hugo</a>
+          
+        </p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.js" integrity="sha384-K3vbOmF2BtaVai+Qk37uypf7VrgBubhQreNQe9aGsz9lB63dIFiQVlJbr92dw2Lx" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/contrib/auto-render.min.js" integrity="sha384-kmZOZB5ObwgQnS/DuDg6TScgOiWWBiVt0plIRkZCmE6rDZGrEOQeHM5PcHi+nyqe" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="https://vinipsmaker.github.io/iofiber/js/main.js"></script>
+<script src="https://vinipsmaker.github.io/iofiber/js/highlight.min.js"></script>
+<script> hljs.initHighlightingOnLoad(); </script>
+<script> $(document).ready(function() {$("pre.chroma").css("padding","0");}); </script><script> renderMathInElement(document.body); </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/photoswipe.min.js" integrity="sha384-QELNnmcmU8IR9ZAykt67vGr9/rZJdHbiWi64V88fCPaOohUlHCqUD/unNN0BXSqy" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/photoswipe-ui-default.min.js" integrity="sha384-m67o7SkQ1ALzKZIFh4CiTA8tmadaujiTa9Vu+nqPSwDOqHrDmxLezTdFln8077+q" crossorigin="anonymous"></script>
+<script src="https://vinipsmaker.github.io/iofiber/js/load-photoswipe.js"></script>
+
+
+
+
+
+
+
+
+  </body>
+</html>
+

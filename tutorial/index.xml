@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tutorials on IOFiber</title>
+    <link>https://vinipsmaker.github.io/iofiber/tutorial/</link>
+    <description>Recent content in Tutorials on IOFiber</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    
+	<atom:link href="https://vinipsmaker.github.io/iofiber/tutorial/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Background</title>
+      <link>https://vinipsmaker.github.io/iofiber/tutorial/background/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://vinipsmaker.github.io/iofiber/tutorial/background/</guid>
+      <description>Interruption API This problem isn&amp;#8217;t new to fibers. On the thread domain the usual approaches are:
+   (Windows) Every time you block on a thread, do it using WaitForMultipleObjects so another thread might signal you to stop your activity and exit earlier. It&amp;#8217;s verbose and boring and error-prone and also require extra non-standard communcation protocols/idioms between every spawned thread and the killer thread.
+Bad as it is, this style hasn&amp;#8217;t died.</description>
+    </item>
+    
+    <item>
+      <title>Interruption</title>
+      <link>https://vinipsmaker.github.io/iofiber/tutorial/interruption/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://vinipsmaker.github.io/iofiber/tutorial/interruption/</guid>
+      <description>If a fiber is stalled waiting for some IO request that might never complete you still can use the interruption API to stop the fiber. The fiber interruption API was inspired by the POSIX thread cancellation API (and Boost.Thread)[1].
+ Interrupting a fiber If you want to interrupt a fiber, call fiber::interrupt(). An interruption request will be queued for near delivery to interrupt the fiber.
+ The fiber will react to the interruption request when it next calls a function that is a suspension point (or if it is currently suspended whilst executing one).</description>
+    </item>
+    
+    <item>
+      <title>IOFiber</title>
+      <link>https://vinipsmaker.github.io/iofiber/tutorial/iofiber/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://vinipsmaker.github.io/iofiber/tutorial/iofiber/</guid>
+      <description>Fibers are lightweight threads managed in user-space. Fibers from this library are:
+   Stackful.
+  Cooperative.
+  Use Boost.Asio execution contexts (e.g. boost::asio::io_context) as schedulers. Any async function will work as a suspension point.
+  Non-symmetric. Main fiber and secondary fibers are exposed to different APIs. There is a clear separation between fibers that run inside and outside ASIO&amp;#8217;s execution contexts.
+   trial::iofiber::fiber is an alias for trial::iofiber::basic_fiber&amp;lt;boost::asio::io_context::strand&amp;gt;.</description>
+    </item>
+    
+  </channel>
+</rss>

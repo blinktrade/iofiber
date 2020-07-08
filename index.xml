@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>IOFiber</title>
+    <link>https://vinipsmaker.github.io/iofiber/</link>
+    <description>Recent content on IOFiber</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    
+	<atom:link href="https://vinipsmaker.github.io/iofiber/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>assert_excl_strand_ref</title>
+      <link>https://vinipsmaker.github.io/iofiber/ref/assert_excl_strand_ref/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://vinipsmaker.github.io/iofiber/ref/assert_excl_strand_ref/</guid>
+      <description>template&amp;lt;class T, class Strand = boost::asio::io_context::strand&amp;gt; class assert_excl_strand_ref;    In coroutines the suspend point is clearly marked with await, which tells the reader that something unusual happens in this function and allows the reader, for example, to confirm whether the lifetimes of the objects of interest align with the lifetime of the coroutine or not, whether some locks need to be acquired to protect some concurrently accessed data, and whether some locks need to be released before the execution reaches the suspend point.</description>
+    </item>
+    
+    <item>
+      <title>Background</title>
+      <link>https://vinipsmaker.github.io/iofiber/tutorial/background/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://vinipsmaker.github.io/iofiber/tutorial/background/</guid>
+      <description>Interruption API This problem isn&amp;#8217;t new to fibers. On the thread domain the usual approaches are:
+   (Windows) Every time you block on a thread, do it using WaitForMultipleObjects so another thread might signal you to stop your activity and exit earlier. It&amp;#8217;s verbose and boring and error-prone and also require extra non-standard communcation protocols/idioms between every spawned thread and the killer thread.
+Bad as it is, this style hasn&amp;#8217;t died.</description>
+    </item>
+    
+    <item>
+      <title>condition_variable</title>
+      <link>https://vinipsmaker.github.io/iofiber/ref/condition_variable/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://vinipsmaker.github.io/iofiber/ref/condition_variable/</guid>
+      <description>template&amp;lt;class Strand&amp;gt; class basic_condition_variable; using condition_variable = basic_condition_variable&amp;lt;boost::asio::io_context::strand&amp;gt;;   As in Boost.Fiber:
+  The class condition_variable provides a mechanism for a fiber to wait for notification from another fiber. When the fiber awakens from the wait, then it checks to see if the appropriate condition is now true, and continues if so. If the condition is not true, then the fiber calls wait again to resume waiting. In the simplest case, this condition is just a boolean variable.</description>
+    </item>
+    
+    <item>
+      <title>fiber</title>
+      <link>https://vinipsmaker.github.io/iofiber/ref/fiber/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://vinipsmaker.github.io/iofiber/ref/fiber/</guid>
+      <description>class fiber;   This class is a move-only handle representing a spawned fiber. fiber objects may also be in a state that doesn&amp;#8217;t represent any fiber (default constructor, after move-from, detach(), or join()).
+   Warning  If the object represents a valid fiber, you MUST either call join(this_fiber) or detach() before the destructor is run.       Important  fiber is a typedef for basic_fiber&amp;lt;boost::asio::io_context::strand&amp;gt;.</description>
+    </item>
+    
+    <item>
+      <title>Interruption</title>
+      <link>https://vinipsmaker.github.io/iofiber/tutorial/interruption/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://vinipsmaker.github.io/iofiber/tutorial/interruption/</guid>
+      <description>If a fiber is stalled waiting for some IO request that might never complete you still can use the interruption API to stop the fiber. The fiber interruption API was inspired by the POSIX thread cancellation API (and Boost.Thread)[1].
+ Interrupting a fiber If you want to interrupt a fiber, call fiber::interrupt(). An interruption request will be queued for near delivery to interrupt the fiber.
+ The fiber will react to the interruption request when it next calls a function that is a suspension point (or if it is currently suspended whilst executing one).</description>
+    </item>
+    
+    <item>
+      <title>IOFiber</title>
+      <link>https://vinipsmaker.github.io/iofiber/tutorial/iofiber/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://vinipsmaker.github.io/iofiber/tutorial/iofiber/</guid>
+      <description>Fibers are lightweight threads managed in user-space. Fibers from this library are:
+   Stackful.
+  Cooperative.
+  Use Boost.Asio execution contexts (e.g. boost::asio::io_context) as schedulers. Any async function will work as a suspension point.
+  Non-symmetric. Main fiber and secondary fibers are exposed to different APIs. There is a clear separation between fibers that run inside and outside ASIO&amp;#8217;s execution contexts.
+   trial::iofiber::fiber is an alias for trial::iofiber::basic_fiber&amp;lt;boost::asio::io_context::strand&amp;gt;.</description>
+    </item>
+    
+    <item>
+      <title>mutex</title>
+      <link>https://vinipsmaker.github.io/iofiber/ref/mutex/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://vinipsmaker.github.io/iofiber/ref/mutex/</guid>
+      <description>template&amp;lt;class Strand&amp;gt; class basic_mutex; using mutex = basic_mutex&amp;lt;boost::asio::io_context::strand&amp;gt;;   As in Boost.Fiber:
+  [&amp;#8230;&amp;#8203;] synchronization objects can neither be moved nor copied. A synchronization object acts as a mutually-agreed rendezvous point between different fibers. If such an object were copied somewhere else, the new copy would have no consumers. If such an object were moved somewhere else, leaving the original instance in an unspecified state, existing consumers would behave strangely.</description>
+    </item>
+    
+    <item>
+      <title>scoped_fiber</title>
+      <link>https://vinipsmaker.github.io/iofiber/ref/scoped_fiber/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://vinipsmaker.github.io/iofiber/ref/scoped_fiber/</guid>
+      <description>struct detach; struct join_if_joinable; struct interrupt_and_join_if_joinable; template&amp;lt;class CallableFiber = join_if_joinable, class JoinerStrand = boost::asio::io_context::strand, class JoineeStrand = boost::asio::io_context::strand&amp;gt; class strict_scoped_fiber; template&amp;lt;class CallableFiber = join_if_joinable, class JoinerStrand = boost::asio::io_context::strand, class JoineeStrand = boost::asio::io_context::strand&amp;gt; class scoped_fiber;   These wrappers have the same motivation in spirit as Boost.Thread:
+  Scoped Threads are wrappers around a thread that allows the user to state what to do at destruction time. One of the common uses is to join the thread at destruction time so this is the default behavior.</description>
+    </item>
+    
+    <item>
+      <title>this_fiber</title>
+      <link>https://vinipsmaker.github.io/iofiber/ref/this_fiber/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://vinipsmaker.github.io/iofiber/ref/this_fiber/</guid>
+      <description>class fiber::this_fiber;   To have access to a this_fiber object, just spawn a fiber and an object of this type will be created for you. You can copy and pass it around freely to other functions as you wish, but you should only use its methods within the fiber context (i.e. within the fiber execution stack) that created it.
+   Important  fiber is a typedef for basic_fiber&amp;lt;boost::asio::io_context::strand&amp;gt;.</description>
+    </item>
+    
+    <item>
+      <title>unique_lock</title>
+      <link>https://vinipsmaker.github.io/iofiber/ref/unique_lock/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://vinipsmaker.github.io/iofiber/ref/unique_lock/</guid>
+      <description>template&amp;lt;class Strand&amp;gt; class basic_unique_lock; using unique_lock = basic_unique_lock&amp;lt;boost::asio::io_context::strand&amp;gt;; template&amp;lt;class Strand&amp;gt; class basic_unique_lock { public: basic_unique_lock(basic_mutex&amp;lt;Strand&amp;gt;&amp;amp; mutex, typename basic_fiber&amp;lt;Strand&amp;gt;::this_fiber this_fiber) : mutex_(&amp;amp;mutex) , owns_lock_(true) { mutex_-&amp;gt;lock(this_fiber); } basic_unique_lock(basic_unique_lock&amp;amp;&amp;amp; o) : mutex_(o.mutex_) , owns_lock_(o.owns_lock_) { o.mutex_ = nullptr; } basic_unique_lock&amp;amp; operator=(basic_unique_lock&amp;amp;&amp;amp; o) { if (mutex_ &amp;amp;&amp;amp; owns_lock_) mutex_-&amp;gt;unlock(); mutex_ = o.mutex_; owns_lock_ = o.owns_lock_; o.mutex_ = nullptr; return *this; } ~basic_unique_lock() { if (!mutex_) // moved return; if (owns_lock_) mutex_-&amp;gt;unlock(); } void lock(typename basic_fiber&amp;lt;Strand&amp;gt;::this_fiber this_fiber) { if (!</description>
+    </item>
+    
+  </channel>
+</rss>

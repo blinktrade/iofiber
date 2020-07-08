@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en" itemscope itemtype="http://schema.org/WebPage">
+  <head>
+    
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+  <title>mutex - IOFiber</title>
+  <meta property="og:title" content="mutex" />
+  <meta name="twitter:title" content="mutex" />
+  <meta name="description" content="template&lt;class Strand&gt; class basic_mutex; using mutex = basic_mutex&lt;boost::asio::io_context::strand&gt;;   As in Boost.Fiber:
+  [&#8230;&#8203;] synchronization objects can neither be moved nor copied. A synchronization object acts as a mutually-agreed rendezvous point between different fibers. If such an object were copied somewhere else, the new copy would have no consumers. If such an object were moved somewhere else, leaving the original instance in an unspecified state, existing consumers would behave strangely.">
+  <meta property="og:description" content="template&lt;class Strand&gt; class basic_mutex; using mutex = basic_mutex&lt;boost::asio::io_context::strand&gt;;   As in Boost.Fiber:
+  [&#8230;&#8203;] synchronization objects can neither be moved nor copied. A synchronization object acts as a mutually-agreed rendezvous point between different fibers. If such an object were copied somewhere else, the new copy would have no consumers. If such an object were moved somewhere else, leaving the original instance in an unspecified state, existing consumers would behave strangely.">
+  <meta name="twitter:description" content="template&lt;class Strand&gt; class basic_mutex; using mutex = basic_mutex&lt;boost::asio::io_context::strand&gt;;   As in Boost.Fiber:
+  [&#8230;&#8203;] synchronization objects can neither be moved …"><script type="application/ld+json">
+{
+    "@context": "http://schema.org",
+    "@type": "WebSite",
+    "name": "IOFiber",
+    
+    "url": "https:\/\/vinipsmaker.github.io\/iofiber\/"
+}
+</script><script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Organization",
+  "name": "",
+  "url": "https:\/\/vinipsmaker.github.io\/iofiber\/"
+  
+  
+  
+  
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [{
+        "@type": "ListItem",
+        "position": 1,
+        "item": {
+          "@id": "https:\/\/vinipsmaker.github.io\/iofiber\/",
+          "name": "home"
+        }
+    },{
+        "@type": "ListItem",
+        "position": 3,
+        "item": {
+          "@id": "https:\/\/vinipsmaker.github.io\/iofiber\/ref\/mutex\/",
+          "name": "Mutex"
+        }
+    }]
+}
+</script><script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "author": {
+    "name" : ""
+  },
+  "headline": "mutex",
+  "description" : "template\u0026lt;class Strand\u0026gt; class basic_mutex; using mutex = basic_mutex\u0026lt;boost::asio::io_context::strand\u0026gt;;   As in Boost.Fiber:\n  [\u0026#8230;\u0026#8203;] synchronization objects can neither be moved nor copied. A synchronization object acts as a mutually-agreed rendezvous point between different fibers. If such an object were copied somewhere else, the new copy would have no consumers. If such an object were moved somewhere else, leaving the original instance in an unspecified state, existing consumers would behave strangely.",
+  "inLanguage" : "en",
+  "wordCount":  538 ,
+  "datePublished" : "0001-01-01T00:00:00",
+  "dateModified" : "0001-01-01T00:00:00",
+  "image" : "https:\/\/vinipsmaker.github.io\/iofiber\/",
+  "keywords" : [ "" ],
+  "mainEntityOfPage" : "https:\/\/vinipsmaker.github.io\/iofiber\/ref\/mutex\/",
+  "publisher" : {
+    "@type": "Organization",
+    "name" : "https:\/\/vinipsmaker.github.io\/iofiber\/",
+    "logo" : {
+        "@type" : "ImageObject",
+        "url" : "https:\/\/vinipsmaker.github.io\/iofiber\/",
+        "height" :  60 ,
+        "width" :  60
+    }
+  }
+}
+</script>
+
+<meta property="og:title" content="mutex" />
+<meta property="og:description" content="template&lt;class Strand&gt; class basic_mutex; using mutex = basic_mutex&lt;boost::asio::io_context::strand&gt;;   As in Boost.Fiber:
+  [&#8230;&#8203;] synchronization objects can neither be moved nor copied. A synchronization object acts as a mutually-agreed rendezvous point between different fibers. If such an object were copied somewhere else, the new copy would have no consumers. If such an object were moved somewhere else, leaving the original instance in an unspecified state, existing consumers would behave strangely.">
+<meta property="og:url" content="https://vinipsmaker.github.io/iofiber/ref/mutex/" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="IOFiber" />
+  <meta name="twitter:title" content="mutex" />
+  <meta name="twitter:description" content="template&lt;class Strand&gt; class basic_mutex; using mutex = basic_mutex&lt;boost::asio::io_context::strand&gt;;   As in Boost.Fiber:
+  [&#8230;&#8203;] synchronization objects can neither be moved …">
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:card" content="summary" />
+  <meta property="og:url" content="https://vinipsmaker.github.io/iofiber/ref/mutex/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="IOFiber" />
+
+  <meta name="generator" content="Hugo 0.73.0" />
+  <link rel="alternate" href="https://vinipsmaker.github.io/iofiber/index.xml" type="application/rss+xml" title="IOFiber">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://vinipsmaker.github.io/iofiber/css/main.css" /><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" />
+  <link rel="stylesheet" href="https://vinipsmaker.github.io/iofiber/css/highlight.min.css" /><link rel="stylesheet" href="https://vinipsmaker.github.io/iofiber/css/codeblock.css" /><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/photoswipe.min.css" integrity="sha384-h/L2W9KefUClHWaty3SLE5F/qvc4djlyR4qY3NUV5HGQBBW7stbcfff1+I/vmsHh" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/default-skin/default-skin.min.css" integrity="sha384-iD0dNku6PYSIQLyfTOpB06F2KCZJAKLOThS5HRe8b3ibhdEQ6eKsFf/EeFxdOt5R" crossorigin="anonymous">
+
+
+
+  </head>
+  <body>
+    <nav class="navbar navbar-default navbar-fixed-top navbar-custom">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#main-navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="https://vinipsmaker.github.io/iofiber/">IOFiber</a>
+    </div>
+
+    <div class="collapse navbar-collapse" id="main-navbar">
+      <ul class="nav navbar-nav navbar-right">
+        
+          
+            <li>
+              <a title="Tutorials(7)" href="/iofiber/tutorial/">Tutorials(7)</a>
+            </li>
+          
+        
+          
+            <li>
+              <a title="Reference(3)" href="/iofiber/ref/">Reference(3)</a>
+            </li>
+          
+        
+
+        
+
+        
+      </ul>
+    </div>
+
+    
+
+  </div>
+</nav>
+
+
+
+
+    
+
+
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+<div class="pswp__bg"></div>
+
+<div class="pswp__scroll-wrap">
+    
+    <div class="pswp__container">
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+    </div>
+    
+    <div class="pswp__ui pswp__ui--hidden">
+    <div class="pswp__top-bar">
+      
+      <div class="pswp__counter"></div>
+      <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+      <button class="pswp__button pswp__button--share" title="Share"></button>
+      <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+      <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+      
+      
+      <div class="pswp__preloader">
+        <div class="pswp__preloader__icn">
+          <div class="pswp__preloader__cut">
+            <div class="pswp__preloader__donut"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+      <div class="pswp__share-tooltip"></div>
+    </div>
+    <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+    </button>
+    <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+    </button>
+    <div class="pswp__caption">
+      <div class="pswp__caption__center"></div>
+    </div>
+    </div>
+    </div>
+</div>
+
+
+  
+  
+  
+
+
+
+
+
+
+  
+
+  <header class="header-section ">
+    
+    <div class="intro-header no-img">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+            <div class="ref-heading">
+              
+                <h1>mutex</h1>
+              
+              
+                <hr class="small">
+              
+              
+              
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+
+    
+<div class="container" role="main">
+  <div class="row">
+    <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+      <article role="main" class="blog-post">
+        <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">template&lt;class Strand&gt;
+class basic_mutex;
+
+using mutex = basic_mutex&lt;boost::asio::io_context::strand&gt;;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As in Boost.Fiber:</p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>[&#8230;&#8203;] synchronization objects can neither be moved nor copied. A synchronization
+object acts as a mutually-agreed rendezvous point between different fibers. If
+such an object were copied somewhere else, the new copy would have no
+consumers. If such an object were <em>moved</em> somewhere else, leaving the original
+instance in an unspecified state, existing consumers would behave strangely.</p>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; <a href="https://www.boost.org/doc/libs/1_71_0/libs/fiber/doc/html/fiber/synchronization.html" class="bare">https://www.boost.org/doc/libs/1_71_0/libs/fiber/doc/html/fiber/synchronization.html</a>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_member_functions">Member-functions</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_constructor"><em>Constructor</em></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">basic_mutex(executor_type executor);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Constructs a new mutex.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_desstructor"><em>Desstructor</em></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">~basic_mutex();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Destructs the mutex.</p>
+</div>
+<div class="paragraph">
+<p>As in <code>pthread_mutex_destroy(3)</code>:</p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>Attempting to destroy a locked mutex or a mutex that is referenced (for example,
+while being used in a <code>pthread_cond_timedwait()</code> or <code>pthread_cond_wait()</code>) by
+another thread results in undefined behavior.</p>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; <a href="http://man7.org/linux/man-pages/man3/pthread_mutex_destroy.3p.html" class="bare">http://man7.org/linux/man-pages/man3/pthread_mutex_destroy.3p.html</a>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_get_executor"><code>get_executor()</code></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">executor_type get_executor() const;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Returns the strand associated with this mutex.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_lock"><code>lock()</code></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">void lock(fiber::this_fiber this_fiber);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Locks the mutex. If another fiber has already locked the mutex, a call to
+<code>lock()</code> will suspend the current fiber until the lock is acquired.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<code>lock()</code> is a suspension point, but it never throws
+<code>fiber_interrupted</code>. It is not an interruption point.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<code>lock()</code> uses dispatch semantic for better performance. If the lock can be
+acquired without yielding to another fiber, so it&#8217;ll be done.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_unlock"><code>unlock()</code></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">void unlock();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Unlocks the mutex.</p>
+</div>
+<div class="paragraph">
+<p>The mutex must be locked by the current fiber. Otherwise, the behavior is
+undefined.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_nested_types">Nested types</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_executor_type"><code>executor_type</code></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">using executor_type = Strand;</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_post_vs_dispatch">Post vs dispatch</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Post semantics mean that the operation won&#8217;t start immediately. Instead it&#8217;ll
+always be scheduled through the underlying execution context. A simple
+illustration of this concept is the fiber constructor.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">void start(std::vector&lt;int&gt;&amp; coll)
+{
+    for (auto e: coll) {
+        fiber([&amp;]() { worker(coll, e); }).detach();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Were the function passed to <code>fiber</code> constructor to execute immediately (dispatch
+semantics), the iterators involved in the for-loop could be invalidated by some
+of the workers mutating <code>coll</code>. So post semantics guarantee a
+“<a href="https://exploringjs.com/es6/ch_async.html#_run-to-completion-semantics">run-to-completion</a>”
+and tend to be adopted as the default execution policy because it tends to be
+safer. Even if the iterator invalidation problem didn&#8217;t exist because you
+decided to adopt a memory-safe and *-safe language, other subtle and
+severe concurrency bugs such as starvation would still haunt you.</p>
+</div>
+<div class="paragraph">
+<p>The problem is that dispatch semantic will run code somewhat arbitrary to the
+function you&#8217;re coding before a suspension point is reached. It works virtually
+as a new suspension point (whose pool of tasks from which the scheduler chooses
+the new fiber is a special limited set). <code>mutex::unlock()</code> isn&#8217;t a suspension
+point and the user doesn&#8217;t expect it to run arbitrary code so it&#8217;d be unsafe for
+<code>mutex::unlock()</code> to use dispatch semantics by immediately executing the next
+fiber pending on the mutex. On the other hand, <code>mutex::lock()</code> already is a
+suspension point, so it is not affected by this problem and dispatch semantics
+are fine (the dispatch semantic in the <code>mutex::lock()</code> case only mean that
+<code>mutex::lock()</code> might not yield thread control to another fiber while it
+acquires the lock).</p>
+</div>
+<div class="paragraph">
+<p>Post semantics also tend to be safer in regards to guaranteeing some level of
+fairness around IO operations. This fairness problem isn&#8217;t as severe for the
+mutex case and a synchronization primitive such as mutex should actually favour
+performance so dispatch semantics fit it better (when safe, such as in the
+<code>mutex::lock()</code> case).</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">See also</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><a href="../unique_lock/"><code>unique_lock</code></a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+        
+
+        
+
+        
+      </article>
+
+      
+        <ul class="pager blog-pager">
+          
+            <li class="previous">
+              <a href="https://vinipsmaker.github.io/iofiber/ref/scoped_fiber/" data-toggle="tooltip" data-placement="top" title="scoped_fiber">&larr; Previous Post</a>
+            </li>
+          
+          
+            <li class="next">
+              <a href="https://vinipsmaker.github.io/iofiber/ref/fiber/" data-toggle="tooltip" data-placement="top" title="fiber">Next Post &rarr;</a>
+            </li>
+          
+        </ul>
+      
+
+
+      
+
+    </div>
+  </div>
+</div>
+
+    <footer>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+        <ul class="list-inline text-center footer-links">
+          
+          
+        </ul>
+        <p class="credits copyright text-muted">
+          
+
+          &nbsp;&bull;&nbsp;&copy;
+          
+            0001
+          
+
+          
+            &nbsp;&bull;&nbsp;
+            <a href="https://vinipsmaker.github.io/iofiber/">IOFiber</a>
+          
+        </p>
+        
+        <p class="credits theme-by text-muted">
+          <a href="http://gohugo.io">Hugo v0.73.0</a> powered &nbsp;&bull;&nbsp; Theme by <a href="http://deanattali.com/beautiful-jekyll/">Beautiful Jekyll</a> adapted to <a href="https://github.com/halogenica/beautifulhugo">Beautiful Hugo</a>
+          
+        </p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.js" integrity="sha384-K3vbOmF2BtaVai+Qk37uypf7VrgBubhQreNQe9aGsz9lB63dIFiQVlJbr92dw2Lx" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/contrib/auto-render.min.js" integrity="sha384-kmZOZB5ObwgQnS/DuDg6TScgOiWWBiVt0plIRkZCmE6rDZGrEOQeHM5PcHi+nyqe" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="https://vinipsmaker.github.io/iofiber/js/main.js"></script>
+<script src="https://vinipsmaker.github.io/iofiber/js/highlight.min.js"></script>
+<script> hljs.initHighlightingOnLoad(); </script>
+<script> $(document).ready(function() {$("pre.chroma").css("padding","0");}); </script><script> renderMathInElement(document.body); </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/photoswipe.min.js" integrity="sha384-QELNnmcmU8IR9ZAykt67vGr9/rZJdHbiWi64V88fCPaOohUlHCqUD/unNN0BXSqy" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/photoswipe-ui-default.min.js" integrity="sha384-m67o7SkQ1ALzKZIFh4CiTA8tmadaujiTa9Vu+nqPSwDOqHrDmxLezTdFln8077+q" crossorigin="anonymous"></script>
+<script src="https://vinipsmaker.github.io/iofiber/js/load-photoswipe.js"></script>
+
+
+
+
+
+
+
+
+  </body>
+</html>
+

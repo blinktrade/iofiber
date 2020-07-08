@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <url>
+    <loc>https://vinipsmaker.github.io/iofiber/</loc>
+  </url>
+  
+  <url>
+    <loc>https://vinipsmaker.github.io/iofiber/ref/assert_excl_strand_ref/</loc>
+  </url>
+  
+  <url>
+    <loc>https://vinipsmaker.github.io/iofiber/tutorial/background/</loc>
+  </url>
+  
+  <url>
+    <loc>https://vinipsmaker.github.io/iofiber/categories/</loc>
+  </url>
+  
+  <url>
+    <loc>https://vinipsmaker.github.io/iofiber/ref/condition_variable/</loc>
+  </url>
+  
+  <url>
+    <loc>https://vinipsmaker.github.io/iofiber/ref/fiber/</loc>
+  </url>
+  
+  <url>
+    <loc>https://vinipsmaker.github.io/iofiber/tutorial/interruption/</loc>
+  </url>
+  
+  <url>
+    <loc>https://vinipsmaker.github.io/iofiber/tutorial/iofiber/</loc>
+  </url>
+  
+  <url>
+    <loc>https://vinipsmaker.github.io/iofiber/ref/mutex/</loc>
+  </url>
+  
+  <url>
+    <loc>https://vinipsmaker.github.io/iofiber/ref/</loc>
+  </url>
+  
+  <url>
+    <loc>https://vinipsmaker.github.io/iofiber/ref/scoped_fiber/</loc>
+  </url>
+  
+  <url>
+    <loc>https://vinipsmaker.github.io/iofiber/tags/</loc>
+  </url>
+  
+  <url>
+    <loc>https://vinipsmaker.github.io/iofiber/ref/this_fiber/</loc>
+  </url>
+  
+  <url>
+    <loc>https://vinipsmaker.github.io/iofiber/tutorial/</loc>
+  </url>
+  
+  <url>
+    <loc>https://vinipsmaker.github.io/iofiber/ref/unique_lock/</loc>
+  </url>
+  
+</urlset>

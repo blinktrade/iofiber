@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en" itemscope itemtype="http://schema.org/WebPage">
+  <head>
+    
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+  <title>Background - IOFiber</title>
+  <meta property="og:title" content="Background" />
+  <meta name="twitter:title" content="Background" />
+  <meta name="description" content="Interruption API This problem isn&#8217;t new to fibers. On the thread domain the usual approaches are:
+   (Windows) Every time you block on a thread, do it using WaitForMultipleObjects so another thread might signal you to stop your activity and exit earlier. It&#8217;s verbose and boring and error-prone and also require extra non-standard communcation protocols/idioms between every spawned thread and the killer thread.
+Bad as it is, this style hasn&#8217;t died.">
+  <meta property="og:description" content="Interruption API This problem isn&#8217;t new to fibers. On the thread domain the usual approaches are:
+   (Windows) Every time you block on a thread, do it using WaitForMultipleObjects so another thread might signal you to stop your activity and exit earlier. It&#8217;s verbose and boring and error-prone and also require extra non-standard communcation protocols/idioms between every spawned thread and the killer thread.
+Bad as it is, this style hasn&#8217;t died.">
+  <meta name="twitter:description" content="Interruption API This problem isn&#8217;t new to fibers. On the thread domain the usual approaches are:
+   (Windows) Every time you block on a thread, do it using WaitForMultipleObjects so another …"><script type="application/ld+json">
+{
+    "@context": "http://schema.org",
+    "@type": "WebSite",
+    "name": "IOFiber",
+    
+    "url": "https:\/\/vinipsmaker.github.io\/iofiber\/"
+}
+</script><script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Organization",
+  "name": "",
+  "url": "https:\/\/vinipsmaker.github.io\/iofiber\/"
+  
+  
+  
+  
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [{
+        "@type": "ListItem",
+        "position": 1,
+        "item": {
+          "@id": "https:\/\/vinipsmaker.github.io\/iofiber\/",
+          "name": "home"
+        }
+    },{
+        "@type": "ListItem",
+        "position": 3,
+        "item": {
+          "@id": "https:\/\/vinipsmaker.github.io\/iofiber\/tutorial\/background\/",
+          "name": "Background"
+        }
+    }]
+}
+</script><script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "author": {
+    "name" : ""
+  },
+  "headline": "Background",
+  "description" : "Interruption API This problem isn\u0026#8217;t new to fibers. On the thread domain the usual approaches are:\n   (Windows) Every time you block on a thread, do it using WaitForMultipleObjects so another thread might signal you to stop your activity and exit earlier. It\u0026#8217;s verbose and boring and error-prone and also require extra non-standard communcation protocols\/idioms between every spawned thread and the killer thread.\nBad as it is, this style hasn\u0026#8217;t died.",
+  "inLanguage" : "en",
+  "wordCount":  411 ,
+  "datePublished" : "0001-01-01T00:00:00",
+  "dateModified" : "0001-01-01T00:00:00",
+  "image" : "https:\/\/vinipsmaker.github.io\/iofiber\/",
+  "keywords" : [ "" ],
+  "mainEntityOfPage" : "https:\/\/vinipsmaker.github.io\/iofiber\/tutorial\/background\/",
+  "publisher" : {
+    "@type": "Organization",
+    "name" : "https:\/\/vinipsmaker.github.io\/iofiber\/",
+    "logo" : {
+        "@type" : "ImageObject",
+        "url" : "https:\/\/vinipsmaker.github.io\/iofiber\/",
+        "height" :  60 ,
+        "width" :  60
+    }
+  }
+}
+</script>
+
+<meta property="og:title" content="Background" />
+<meta property="og:description" content="Interruption API This problem isn&#8217;t new to fibers. On the thread domain the usual approaches are:
+   (Windows) Every time you block on a thread, do it using WaitForMultipleObjects so another thread might signal you to stop your activity and exit earlier. It&#8217;s verbose and boring and error-prone and also require extra non-standard communcation protocols/idioms between every spawned thread and the killer thread.
+Bad as it is, this style hasn&#8217;t died.">
+<meta property="og:url" content="https://vinipsmaker.github.io/iofiber/tutorial/background/" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="IOFiber" />
+  <meta name="twitter:title" content="Background" />
+  <meta name="twitter:description" content="Interruption API This problem isn&#8217;t new to fibers. On the thread domain the usual approaches are:
+   (Windows) Every time you block on a thread, do it using WaitForMultipleObjects so another …">
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:card" content="summary" />
+  <meta property="og:url" content="https://vinipsmaker.github.io/iofiber/tutorial/background/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="IOFiber" />
+
+  <meta name="generator" content="Hugo 0.73.0" />
+  <link rel="alternate" href="https://vinipsmaker.github.io/iofiber/index.xml" type="application/rss+xml" title="IOFiber">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://vinipsmaker.github.io/iofiber/css/main.css" /><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" />
+  <link rel="stylesheet" href="https://vinipsmaker.github.io/iofiber/css/highlight.min.css" /><link rel="stylesheet" href="https://vinipsmaker.github.io/iofiber/css/codeblock.css" /><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/photoswipe.min.css" integrity="sha384-h/L2W9KefUClHWaty3SLE5F/qvc4djlyR4qY3NUV5HGQBBW7stbcfff1+I/vmsHh" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/default-skin/default-skin.min.css" integrity="sha384-iD0dNku6PYSIQLyfTOpB06F2KCZJAKLOThS5HRe8b3ibhdEQ6eKsFf/EeFxdOt5R" crossorigin="anonymous">
+
+
+
+  </head>
+  <body>
+    <nav class="navbar navbar-default navbar-fixed-top navbar-custom">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#main-navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="https://vinipsmaker.github.io/iofiber/">IOFiber</a>
+    </div>
+
+    <div class="collapse navbar-collapse" id="main-navbar">
+      <ul class="nav navbar-nav navbar-right">
+        
+          
+            <li>
+              <a title="Tutorials(7)" href="/iofiber/tutorial/">Tutorials(7)</a>
+            </li>
+          
+        
+          
+            <li>
+              <a title="Reference(3)" href="/iofiber/ref/">Reference(3)</a>
+            </li>
+          
+        
+
+        
+
+        
+      </ul>
+    </div>
+
+    
+
+  </div>
+</nav>
+
+
+
+
+    
+
+
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+<div class="pswp__bg"></div>
+
+<div class="pswp__scroll-wrap">
+    
+    <div class="pswp__container">
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+    </div>
+    
+    <div class="pswp__ui pswp__ui--hidden">
+    <div class="pswp__top-bar">
+      
+      <div class="pswp__counter"></div>
+      <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+      <button class="pswp__button pswp__button--share" title="Share"></button>
+      <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+      <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+      
+      
+      <div class="pswp__preloader">
+        <div class="pswp__preloader__icn">
+          <div class="pswp__preloader__cut">
+            <div class="pswp__preloader__donut"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+      <div class="pswp__share-tooltip"></div>
+    </div>
+    <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+    </button>
+    <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+    </button>
+    <div class="pswp__caption">
+      <div class="pswp__caption__center"></div>
+    </div>
+    </div>
+    </div>
+</div>
+
+
+  
+  
+  
+
+
+
+
+
+
+  
+
+  <header class="header-section ">
+    
+    <div class="intro-header no-img">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+            <div class="tutorial-heading">
+              
+                <h1>Background</h1>
+              
+              
+                <hr class="small">
+              
+              
+              
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+
+    
+<div class="container" role="main">
+  <div class="row">
+    <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+      <article role="main" class="blog-post">
+        <div class="sect1">
+<h2 id="_interruption_api">Interruption API</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This problem isn&#8217;t new to fibers. On the thread domain the usual approaches are:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>(Windows) Every time you block on a thread, do it using
+<code>WaitForMultipleObjects</code> so another thread might signal you to stop your
+activity and exit earlier. It&#8217;s verbose and boring and error-prone and also
+require extra non-standard communcation protocols/idioms between every spawned
+thread and the killer thread.</p>
+<div class="paragraph">
+<p>Bad as it is, this style hasn&#8217;t
+died. <a href="https://www.sohamkamani.com/blog/golang/2018-06-17-golang-using-context-cancellation/">Go&#8217;s
+approach to killing goroutines is conceptually equivalent to Windows approach,
+but syntactically less ugly and with a more standardized protocol/idiom</a>.</p>
+</div>
+</li>
+<li>
+<p>(POSIX) Send an <code>INTR</code> signal to the thread.</p>
+</li>
+<li>
+<p>POSIX Thread cancellation API.</p>
+</li>
+<li>
+<p>Rust has no answer. And this is funny given the public appraisal for Rust
+threading
+capabilities. <a href="https://github.com/rust-lang/rust/blob/6b9b97bd9b704f85f0184f7a213cc4d62bd9654c/src/libstd/io/mod.rs#L1945">Still
+worse is Rust getting in your way</a> (no good threading, no good fibers).</p>
+</li>
+<li>
+<p>Java&#8217;s <code>Thread.interrupt()</code> API is similar to POSIX Thread cancellation API
+and it is
+<a href="https://docs.oracle.com/javase/7/docs/technotes/guides/concurrency/threadPrimitiveDeprecation.html">one
+of the few approaches that has not been deprecated because of bad
+design</a>. However, Java design isn&#8217;t free from problems either. The state
+machine is too complicated and requires sharing too much knowledge between
+target thread and killer thread.</p>
+</li>
+<li>
+<p>Boost.Thread also mirrors POSIX Thread cancellation API, but takes conventions
+from Java API to C++-ify the API (e.g. name <code>interrupt()</code> instead
+<code>cancel()</code>, &#8230;&#8203;) and shoots a few ideas of its own.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>I&#8217;ve spent long hours researching before settling down on a single design. The
+chosen design mainly borrows from POSIX thread cancellation API and
+Boost.Thread.</p>
+</div>
+<div class="paragraph">
+<p>Other inspirations, even if minimal, were:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://trio.readthedocs.io/en/latest/reference-core.html#trio.The%20cancel%20scope%20interface.cancelled_caught">Python&#8217;s
+trio <code>cancelled_caught()</code> method</a> served as an inspirational name for
+<code>interruption_caught()</code>.</p>
+</li>
+<li>
+<p><a href="http://jehanne.io/2018/11/15/simplicity-awakes.html">Giacomo Tesio&#8217;s awake
+syscall idea</a> was an inspiration to <code>this_fiber.interrupter</code> field.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>As for the interrupter traits (used in <code>this_fiber.with_intr()</code>), I didn&#8217;t allow
+a stateful trait object because this object would be moved across the stages of
+the async operation and the user would stay unable to extract this info at the
+fiber wakeup anyway. If the user will have to resort to heap usage one way or
+another, he might just as well use fiber local storage and at least reuse these
+memory regions across async calls.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_fiber_local_storage">Fiber local storage</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Boost.Fiber interface was not considered. Boost.Fiber just mirrors Boost.Thread
+interface. However Boost.Thread interface is meant for portability on platforms
+that lack support for thread-local. If the implementation is not constrained to
+rely solely on <code>pthread_key_create</code>/<code>tss_create</code> then there is no reason to
+follow Boost.Thread design.</p>
+</div>
+<div class="paragraph">
+<p><a href="https://github.com/facebook/folly/blob/ea2ad0ad002b605fcf9d56c4d920bb51c16ea821/folly/fibers/FiberManagerInternal-inl.h#L560-L561">IOFiber
+design is similar to Facebook&#8217;s Folly</a>. The difference is support for user types
+that have no default constructors.</p>
+</div>
+</div>
+</div>
+
+
+        
+
+        
+
+        
+      </article>
+
+      
+        <ul class="pager blog-pager">
+          
+            <li class="previous">
+              <a href="https://vinipsmaker.github.io/iofiber/tutorial/interruption/" data-toggle="tooltip" data-placement="top" title="Interruption">&larr; Previous Post</a>
+            </li>
+          
+          
+        </ul>
+      
+
+
+      
+
+    </div>
+  </div>
+</div>
+
+    <footer>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+        <ul class="list-inline text-center footer-links">
+          
+          
+        </ul>
+        <p class="credits copyright text-muted">
+          
+
+          &nbsp;&bull;&nbsp;&copy;
+          
+            0001
+          
+
+          
+            &nbsp;&bull;&nbsp;
+            <a href="https://vinipsmaker.github.io/iofiber/">IOFiber</a>
+          
+        </p>
+        
+        <p class="credits theme-by text-muted">
+          <a href="http://gohugo.io">Hugo v0.73.0</a> powered &nbsp;&bull;&nbsp; Theme by <a href="http://deanattali.com/beautiful-jekyll/">Beautiful Jekyll</a> adapted to <a href="https://github.com/halogenica/beautifulhugo">Beautiful Hugo</a>
+          
+        </p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.js" integrity="sha384-K3vbOmF2BtaVai+Qk37uypf7VrgBubhQreNQe9aGsz9lB63dIFiQVlJbr92dw2Lx" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/contrib/auto-render.min.js" integrity="sha384-kmZOZB5ObwgQnS/DuDg6TScgOiWWBiVt0plIRkZCmE6rDZGrEOQeHM5PcHi+nyqe" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="https://vinipsmaker.github.io/iofiber/js/main.js"></script>
+<script src="https://vinipsmaker.github.io/iofiber/js/highlight.min.js"></script>
+<script> hljs.initHighlightingOnLoad(); </script>
+<script> $(document).ready(function() {$("pre.chroma").css("padding","0");}); </script><script> renderMathInElement(document.body); </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/photoswipe.min.js" integrity="sha384-QELNnmcmU8IR9ZAykt67vGr9/rZJdHbiWi64V88fCPaOohUlHCqUD/unNN0BXSqy" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/photoswipe-ui-default.min.js" integrity="sha384-m67o7SkQ1ALzKZIFh4CiTA8tmadaujiTa9Vu+nqPSwDOqHrDmxLezTdFln8077+q" crossorigin="anonymous"></script>
+<script src="https://vinipsmaker.github.io/iofiber/js/load-photoswipe.js"></script>
+
+
+
+
+
+
+
+
+  </body>
+</html>
+

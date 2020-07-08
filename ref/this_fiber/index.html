@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en" itemscope itemtype="http://schema.org/WebPage">
+  <head>
+    
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+  <title>this_fiber - IOFiber</title>
+  <meta property="og:title" content="this_fiber" />
+  <meta name="twitter:title" content="this_fiber" />
+  <meta name="description" content="class fiber::this_fiber;   To have access to a this_fiber object, just spawn a fiber and an object of this type will be created for you. You can copy and pass it around freely to other functions as you wish, but you should only use its methods within the fiber context (i.e. within the fiber execution stack) that created it.
+   Important  fiber is a typedef for basic_fiber&lt;boost::asio::io_context::strand&gt;.">
+  <meta property="og:description" content="class fiber::this_fiber;   To have access to a this_fiber object, just spawn a fiber and an object of this type will be created for you. You can copy and pass it around freely to other functions as you wish, but you should only use its methods within the fiber context (i.e. within the fiber execution stack) that created it.
+   Important  fiber is a typedef for basic_fiber&lt;boost::asio::io_context::strand&gt;.">
+  <meta name="twitter:description" content="class fiber::this_fiber;   To have access to a this_fiber object, just spawn a fiber and an object of this type will be created for you. You can copy and pass it around freely to other functions as …"><script type="application/ld+json">
+{
+    "@context": "http://schema.org",
+    "@type": "WebSite",
+    "name": "IOFiber",
+    
+    "url": "https:\/\/vinipsmaker.github.io\/iofiber\/"
+}
+</script><script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Organization",
+  "name": "",
+  "url": "https:\/\/vinipsmaker.github.io\/iofiber\/"
+  
+  
+  
+  
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [{
+        "@type": "ListItem",
+        "position": 1,
+        "item": {
+          "@id": "https:\/\/vinipsmaker.github.io\/iofiber\/",
+          "name": "home"
+        }
+    },{
+        "@type": "ListItem",
+        "position": 3,
+        "item": {
+          "@id": "https:\/\/vinipsmaker.github.io\/iofiber\/ref\/this_fiber\/",
+          "name": "This fiber"
+        }
+    }]
+}
+</script><script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "author": {
+    "name" : ""
+  },
+  "headline": "this_fiber",
+  "description" : "class fiber::this_fiber;   To have access to a this_fiber object, just spawn a fiber and an object of this type will be created for you. You can copy and pass it around freely to other functions as you wish, but you should only use its methods within the fiber context (i.e. within the fiber execution stack) that created it.\n   Important  fiber is a typedef for basic_fiber\u0026lt;boost::asio::io_context::strand\u0026gt;.",
+  "inLanguage" : "en",
+  "wordCount":  856 ,
+  "datePublished" : "0001-01-01T00:00:00",
+  "dateModified" : "0001-01-01T00:00:00",
+  "image" : "https:\/\/vinipsmaker.github.io\/iofiber\/",
+  "keywords" : [ "" ],
+  "mainEntityOfPage" : "https:\/\/vinipsmaker.github.io\/iofiber\/ref\/this_fiber\/",
+  "publisher" : {
+    "@type": "Organization",
+    "name" : "https:\/\/vinipsmaker.github.io\/iofiber\/",
+    "logo" : {
+        "@type" : "ImageObject",
+        "url" : "https:\/\/vinipsmaker.github.io\/iofiber\/",
+        "height" :  60 ,
+        "width" :  60
+    }
+  }
+}
+</script>
+
+<meta property="og:title" content="this_fiber" />
+<meta property="og:description" content="class fiber::this_fiber;   To have access to a this_fiber object, just spawn a fiber and an object of this type will be created for you. You can copy and pass it around freely to other functions as you wish, but you should only use its methods within the fiber context (i.e. within the fiber execution stack) that created it.
+   Important  fiber is a typedef for basic_fiber&lt;boost::asio::io_context::strand&gt;.">
+<meta property="og:url" content="https://vinipsmaker.github.io/iofiber/ref/this_fiber/" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="IOFiber" />
+  <meta name="twitter:title" content="this_fiber" />
+  <meta name="twitter:description" content="class fiber::this_fiber;   To have access to a this_fiber object, just spawn a fiber and an object of this type will be created for you. You can copy and pass it around freely to other functions as …">
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:card" content="summary" />
+  <meta property="og:url" content="https://vinipsmaker.github.io/iofiber/ref/this_fiber/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="IOFiber" />
+
+  <meta name="generator" content="Hugo 0.73.0" />
+  <link rel="alternate" href="https://vinipsmaker.github.io/iofiber/index.xml" type="application/rss+xml" title="IOFiber">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://vinipsmaker.github.io/iofiber/css/main.css" /><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" />
+  <link rel="stylesheet" href="https://vinipsmaker.github.io/iofiber/css/highlight.min.css" /><link rel="stylesheet" href="https://vinipsmaker.github.io/iofiber/css/codeblock.css" /><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/photoswipe.min.css" integrity="sha384-h/L2W9KefUClHWaty3SLE5F/qvc4djlyR4qY3NUV5HGQBBW7stbcfff1+I/vmsHh" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/default-skin/default-skin.min.css" integrity="sha384-iD0dNku6PYSIQLyfTOpB06F2KCZJAKLOThS5HRe8b3ibhdEQ6eKsFf/EeFxdOt5R" crossorigin="anonymous">
+
+
+
+  </head>
+  <body>
+    <nav class="navbar navbar-default navbar-fixed-top navbar-custom">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#main-navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="https://vinipsmaker.github.io/iofiber/">IOFiber</a>
+    </div>
+
+    <div class="collapse navbar-collapse" id="main-navbar">
+      <ul class="nav navbar-nav navbar-right">
+        
+          
+            <li>
+              <a title="Tutorials(7)" href="/iofiber/tutorial/">Tutorials(7)</a>
+            </li>
+          
+        
+          
+            <li>
+              <a title="Reference(3)" href="/iofiber/ref/">Reference(3)</a>
+            </li>
+          
+        
+
+        
+
+        
+      </ul>
+    </div>
+
+    
+
+  </div>
+</nav>
+
+
+
+
+    
+
+
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+<div class="pswp__bg"></div>
+
+<div class="pswp__scroll-wrap">
+    
+    <div class="pswp__container">
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+    </div>
+    
+    <div class="pswp__ui pswp__ui--hidden">
+    <div class="pswp__top-bar">
+      
+      <div class="pswp__counter"></div>
+      <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+      <button class="pswp__button pswp__button--share" title="Share"></button>
+      <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+      <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+      
+      
+      <div class="pswp__preloader">
+        <div class="pswp__preloader__icn">
+          <div class="pswp__preloader__cut">
+            <div class="pswp__preloader__donut"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+      <div class="pswp__share-tooltip"></div>
+    </div>
+    <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+    </button>
+    <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+    </button>
+    <div class="pswp__caption">
+      <div class="pswp__caption__center"></div>
+    </div>
+    </div>
+    </div>
+</div>
+
+
+  
+  
+  
+
+
+
+
+
+
+  
+
+  <header class="header-section ">
+    
+    <div class="intro-header no-img">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+            <div class="ref-heading">
+              
+                <h1>this_fiber</h1>
+              
+              
+                <hr class="small">
+              
+              
+              
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+
+    
+<div class="container" role="main">
+  <div class="row">
+    <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+      <article role="main" class="blog-post">
+        <div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">class fiber::this_fiber;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To have access to a <code>this_fiber</code> object, just spawn a fiber and an object of
+this type will be created for you. You can copy and pass it around freely to
+other functions as you wish, but you should only use its methods within the
+fiber context (i.e. within the fiber execution stack) that created it.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Important</div>
+</td>
+<td class="content">
+<code>fiber</code> is a typedef for
+<code>basic_fiber&lt;boost::asio::io_context::strand&gt;</code>. <code>Strand</code> below will refer to the
+template argument of the instantiation used.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect1">
+<h2 id="_member_functions">Member-functions</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_operator"><code>operator[]()</code></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">this_fiber operator[](boost::system::error_code&amp; ec) const;
+this_fiber operator[](std::nullptr_t) const;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Will return a new <code>this_fiber</code> object which will fill <code>ec</code> instead throwing an
+exception when used as a completion token argument for <code>async_*</code> functions. If
+<code>nullptr</code> is passed, then the returned object will have the default
+exception-throwing behaviour.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">void start(fiber::this_fiber this_fiber)
+{
+  boost::asio::steady_timer timer{this_fiber.get_executor().context()};
+  timer.expires_after(std::chrono::seconds(1));
+
+  boost::system::error_code ec;
+  timer.async_wait(this_fiber[ec]);
+  if (ec) {
+    // ...</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_operator_2"><code>operator=()</code></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">this_fiber&amp; operator=(const this_fiber&amp; o);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Assigns <code>o</code>'s <code>error_code</code> reporting behaviour (see <code>operator[]()</code>) to
+<code>*this</code>.</p>
+</div>
+<div class="paragraph">
+<div class="title">Preconditions</div>
+<p><code>*this</code> and <code>o</code> are handles for the same fiber.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_get_executor"><code>get_executor()</code></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">Strand get_executor() const;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Returns the strand associated with this fiber. You can set the strand associated
+with the fiber by passing the desired strand by the time construct
+<code>fiber</code>. User-code running on this fiber will always be executed through this
+strand. Implementation details might or might not move the fiber through
+different strands to perform some synchronization but no user code will be
+called while the fiber is in a foreign strand.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_yield"><code>yield()</code></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">void yield();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Re-schedules the fiber to be executed soon. Use this function to yield CPU-time
+to other fibers if you don&#8217;t want to block the thread while doing intensive CPU
+work for a long period of time.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="with_intr"><code>with_intr()</code></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">template&lt;class... Args&gt;
+unspecified with_intr(Args&amp;&amp;... args);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Calls <code>interrupter_for&lt;typename std::decay&lt;Args&gt;::type&#8230;&#8203;&gt;::assign(*this,
+std::forward&lt;Args&gt;(args)&#8230;&#8203;)</code> and returns a completion token that can be used in
+asynchronous operations. When the operation finishes, calls
+<code>interrupter_for&lt;typename std::decay&lt;Args&gt;::type&#8230;&#8203;&gt;::on_result()</code> (before the
+result is returned to the caller of the async operation).</p>
+</div>
+<div class="paragraph">
+<p>Return type is unspecified.</p>
+</div>
+<div class="paragraph">
+<p>See <a href="../../tutorial/interruption/"><em>interruption(7)</em></a> for details.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_forbidallow_suspend"><code>{forbid,allow}_suspend()</code></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">void forbid_suspend();
+void allow_suspend();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>These functions are in the same level of usefulness of an <code>assert()</code>
+directive. They&#8217;re only useful if there are comprehensive test cases and they
+expand to no-ops if compiled with <code>NDEBUG</code>.</p>
+</div>
+<div class="paragraph">
+<p>Still, the use of these functions may make the code more readable. And some
+tools may be developed to understand these blocks and do some simple static
+analysis.</p>
+</div>
+<div class="paragraph">
+<p>A call to <code>forbid_suspend()</code> will put the fiber in the state of
+<em>suspension-disallowed</em> and any attempt to suspend the fiber while it is in this
+state will call <code>std::abort()</code>.</p>
+</div>
+<div class="paragraph">
+<p><code>forbid_suspend()</code> may be called multiple times. A matching number of calls to
+<code>allow_suspend()</code> will put the fiber out of the <em>suspension-disallowed</em>
+state. You must not call <code>allow_suspend()</code> if there was no prior call to
+<code>forbid_suspend()</code>.</p>
+</div>
+<div class="paragraph">
+<p><code>this_fiber</code>'s copy constructor will also trigger a call to <code>std::abort()</code> if
+the fiber is in the <code>suspension-disallowed</code> state as the copy constructor is
+only used to make calls to functions that potentially suspend and this defensive
+behaviour will make you less dependant of fully comprehensive tests.</p>
+</div>
+<div class="paragraph">
+<p>See also the
+<a href="../assert_excl_strand_ref/"><code>assert_excl_strand_ref(3)</code></a> RAII
+helper.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_local"><code>local()</code></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">template&lt;class T, class... Args&gt;
+T&amp; local(Args&amp;&amp;... args);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Access fiber local storage. If <code>T</code> is not in fiber-local storage, constructs <code>T</code>
+forwarding <code>args</code>. <code>T</code> will be destructed when fiber finishes.</p>
+</div>
+<div class="paragraph">
+<p>Once <code>T</code> is in the fiber-local storage, it&#8217;ll only be destructed once the fiber
+finishes and it&#8217;ll remain at a stable memory location throughout its lifetime,
+so you can safely cache pointers to it. That&#8217;s also the reason why no
+<code>reset_*()</code> function to clear local data is provided.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Requires</dt>
+<dd>
+<p><code>noexcept(~T())</code></p>
+</dd>
+<dt class="hdlist1">Exception safety</dt>
+<dd>
+<p>Provides strong exception guarantees.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_member_variables">Member variables</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="interrupter"><code>interrupter</code></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">std::function&lt;void()&gt;&amp; interrupter;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When you interrupt a fiber (i.e. <code>fiber::interrupt()</code>), a generic interruption
+trigger will be executed to wake-up the fiber and throw a <code>fiber_interrupted</code>
+exception. However, this behaviour won&#8217;t immediately cancel pending IO
+requests. Suppose your fiber is suspended in the following point when an
+interruption request arrives:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">void start(fiber::this_fiber this_fiber)
+{
+  boost::asio::steady_timer timer{this_fiber.get_executor().context()};
+  timer.expires_after(std::chrono::seconds(1));
+
+  try {
+    timer.async_wait(this_fiber);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You might postpone interruption fulfilment to later by having some code like
+this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">  } catch (const fiber_interrupted&amp;) {
+    [[maybe_unused]]
+    fiber::this_fiber::disable_interruption di{this_fiber};
+
+    // some time (time != CPU time) consuming task here</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>By this point, the <code>timer</code> object is still alive and its pending request hasn&#8217;t
+been cancelled yet — it&#8217;d be automatically cancelled by letting the destructor
+run.</p>
+</div>
+<div class="paragraph">
+<p>You can fix this situation by having a custom interrupter to wake-up the fiber
+when an interruption request arrives. Just assign a value to this variable right
+before reaching a fiber suspension point.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+It&#8217;s only useful to modify this variable for IO requests (i.e. <code>async_*</code>
+functions) as the default interrupter will do fine for <code>this_fiber.yield()</code>,
+<code>fib.join(this_fiber)</code> and other synchronization techniques shown here.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Always filling a custom interrupter is also the only way you can have a robust
+program that never discards the result of an operation whose side-effects
+already occurred (you can force fulfillment at every call-site by defining
+<code>TRIAL_IOFIBER_DISABLE_DEFAULT_INTERRUPTER</code>).</p>
+</div>
+<div class="ulist">
+<div class="title">See also</div>
+<ul>
+<li>
+<p><a href="#with_intr"><code>with_intr()</code></a>.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_nested_types">Nested types</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_disable_interruption"><code>disable_interruption</code></h3>
+<div class="paragraph">
+<p>Saves current interruption enabled state (and disable interruptions) on
+construction and restores it on destruction. It&#8217;s non-moveable and non-copyable.</p>
+</div>
+<div class="paragraph">
+<p>See <a href="../../tutorial/interruption/"><code>interruption(7)</code></a> for more.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_restore_interruption"><code>restore_interruption</code></h3>
+<div class="paragraph">
+<p>Temporarily reverses the effects of the <code>disable_interruption</code> object. It&#8217;s
+non-moveable and non-copyable.</p>
+</div>
+<div class="paragraph">
+<p>See <a href="../../tutorial/interruption/"><code>interruption(7)</code></a> for more.</p>
+</div>
+</div>
+</div>
+</div>
+
+
+        
+
+        
+
+        
+      </article>
+
+      
+        <ul class="pager blog-pager">
+          
+            <li class="previous">
+              <a href="https://vinipsmaker.github.io/iofiber/ref/unique_lock/" data-toggle="tooltip" data-placement="top" title="unique_lock">&larr; Previous Post</a>
+            </li>
+          
+          
+            <li class="next">
+              <a href="https://vinipsmaker.github.io/iofiber/ref/scoped_fiber/" data-toggle="tooltip" data-placement="top" title="scoped_fiber">Next Post &rarr;</a>
+            </li>
+          
+        </ul>
+      
+
+
+      
+
+    </div>
+  </div>
+</div>
+
+    <footer>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+        <ul class="list-inline text-center footer-links">
+          
+          
+        </ul>
+        <p class="credits copyright text-muted">
+          
+
+          &nbsp;&bull;&nbsp;&copy;
+          
+            0001
+          
+
+          
+            &nbsp;&bull;&nbsp;
+            <a href="https://vinipsmaker.github.io/iofiber/">IOFiber</a>
+          
+        </p>
+        
+        <p class="credits theme-by text-muted">
+          <a href="http://gohugo.io">Hugo v0.73.0</a> powered &nbsp;&bull;&nbsp; Theme by <a href="http://deanattali.com/beautiful-jekyll/">Beautiful Jekyll</a> adapted to <a href="https://github.com/halogenica/beautifulhugo">Beautiful Hugo</a>
+          
+        </p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.js" integrity="sha384-K3vbOmF2BtaVai+Qk37uypf7VrgBubhQreNQe9aGsz9lB63dIFiQVlJbr92dw2Lx" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/contrib/auto-render.min.js" integrity="sha384-kmZOZB5ObwgQnS/DuDg6TScgOiWWBiVt0plIRkZCmE6rDZGrEOQeHM5PcHi+nyqe" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="https://vinipsmaker.github.io/iofiber/js/main.js"></script>
+<script src="https://vinipsmaker.github.io/iofiber/js/highlight.min.js"></script>
+<script> hljs.initHighlightingOnLoad(); </script>
+<script> $(document).ready(function() {$("pre.chroma").css("padding","0");}); </script><script> renderMathInElement(document.body); </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/photoswipe.min.js" integrity="sha384-QELNnmcmU8IR9ZAykt67vGr9/rZJdHbiWi64V88fCPaOohUlHCqUD/unNN0BXSqy" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/photoswipe-ui-default.min.js" integrity="sha384-m67o7SkQ1ALzKZIFh4CiTA8tmadaujiTa9Vu+nqPSwDOqHrDmxLezTdFln8077+q" crossorigin="anonymous"></script>
+<script src="https://vinipsmaker.github.io/iofiber/js/load-photoswipe.js"></script>
+
+
+
+
+
+
+
+
+  </body>
+</html>
+
