@@ -9,7 +9,7 @@ using namespace std;
 void sleepsort(asio::io_context& ioctx, std::vector<int> v)
 {
     for (auto i: v) {
-        fib::spawn(
+        fib::fiber(
             ioctx,
             [i](fib::fiber::this_fiber this_fiber) {
                 asio::steady_timer timer{this_fiber.get_executor().context()};

@@ -376,6 +376,35 @@ private:
 template<class T>
 boost::asio::execution_context::id service_aborted<T>::id;
 
+template<class Strand, class F>
+struct SpawnFunctor
+{
+    using impl = typename basic_this_fiber<Strand>::impl;
+
+    template<class F2>
+    SpawnFunctor(F2&& f, std::shared_ptr<impl> pimpl)
+        : f(std::forward<F2>(f))
+        , pimpl(std::move(pimpl))
+    {}
+
+    boost::context::fiber operator()(boost::context::fiber&& sink)
+    {
+        pimpl->coro.swap(sink);
+        try {
+            f(basic_this_fiber<Strand>{pimpl});
+        } catch (const fiber_interrupted&) {
+            pimpl->interruption_caught = true;
+        }
+        if (pimpl->joiner_executor) {
+            pimpl->joiner_executor();
+        }
+        return std::move(pimpl->coro);
+    }
+
+    F f;
+    std::shared_ptr<impl> pimpl;
+};
+
 } // namespace detail {
 
 template<class ExecutionContext>
@@ -397,9 +426,39 @@ public:
         : joinable_state(joinable_type::DETACHED)
     {}
 
-    basic_fiber(std::shared_ptr<impl> pimpl)
-        : pimpl_(std::move(pimpl))
+    template<class F, class StackAllocator = boost::context::default_stack>
+    basic_fiber(Strand executor, F&& f,
+                StackAllocator salloc = StackAllocator())
+        : pimpl_{[&]() {
+            auto pimpl = std::make_shared<impl>(executor);
+            pimpl->coro = boost::context::fiber{
+                std::allocator_arg,
+                salloc,
+                detail::SpawnFunctor<Strand, F>{std::forward<F>(f), pimpl}
+            };
+            executor.post([pimpl]() {
+                pimpl->coro = std::move(pimpl->coro).resume();
+            }, std::allocator<void>{});
+
+            executor.on_work_started();
+            return std::move(pimpl);
+        }()}
         , joinable_state(joinable_type::JOINABLE)
+    {}
+
+    template<class F, class StackAllocator = boost::context::default_stack>
+    basic_fiber(detail::basic_this_fiber<Strand> this_fiber, F&& f,
+                StackAllocator salloc = StackAllocator())
+        : basic_fiber{
+            this_fiber.get_executor(), std::forward<F>(f),
+            std::move(salloc)
+        }
+    {}
+
+    template<class F, class StackAllocator = boost::context::default_stack>
+    basic_fiber(decltype(std::declval<Strand>().context())& ctx, F&& f,
+                StackAllocator salloc = StackAllocator())
+        : basic_fiber{Strand{ctx}, std::forward<F>(f), std::move(salloc)}
     {}
 
     basic_fiber(basic_fiber&& o)
@@ -652,6 +711,37 @@ private:
     typename basic_fiber<JoinerStrand>::this_fiber yield;
 };
 
+template<class CallableFiber, class Strand>
+class strict_scoped_fiber<CallableFiber, Strand, Strand>: private CallableFiber
+{
+public:
+    strict_scoped_fiber(
+        basic_fiber<Strand> &&fib,
+        typename basic_fiber<Strand>::this_fiber this_fiber
+    )
+        : fib(std::move(fib))
+        , yield(std::move(this_fiber))
+    {}
+
+    template<class F, class StackAllocator = boost::context::default_stack>
+    strict_scoped_fiber(
+        typename basic_fiber<Strand>::this_fiber this_fiber,
+        F&& f, StackAllocator salloc = StackAllocator()
+    )
+        : fib(this_fiber, std::forward<F>(f), salloc)
+        , yield(std::move(this_fiber))
+    {}
+
+    ~strict_scoped_fiber()
+    {
+        static_cast<CallableFiber&>(*this)(fib, yield);
+    }
+
+private:
+    basic_fiber<Strand> fib;
+    typename basic_fiber<Strand>::this_fiber yield;
+};
+
 template<class CallableFiber = join_if_joinable,
          class JoinerStrand = boost::asio::io_context::strand,
          class JoineeStrand = boost::asio::io_context::strand>
@@ -729,6 +819,92 @@ public:
 private:
     basic_fiber<JoineeStrand> fib;
     typename basic_fiber<JoinerStrand>::this_fiber yield;
+};
+
+template<class CallableFiber, class Strand>
+class scoped_fiber<CallableFiber, Strand, Strand>: private CallableFiber
+{
+public:
+    scoped_fiber(typename basic_fiber<Strand>::this_fiber this_fiber)
+        : yield(std::move(this_fiber))
+    {}
+
+    scoped_fiber(
+        basic_fiber<Strand> &&fib,
+        typename basic_fiber<Strand>::this_fiber this_fiber
+    )
+        : fib(std::move(fib))
+        , yield(std::move(this_fiber))
+    {}
+
+    template<class F, class StackAllocator = boost::context::default_stack>
+    scoped_fiber(
+        typename basic_fiber<Strand>::this_fiber this_fiber,
+        F&& f, StackAllocator salloc = StackAllocator()
+    )
+        : fib(this_fiber, std::forward<F>(f), salloc)
+        , yield(std::move(this_fiber))
+    {}
+
+    scoped_fiber(scoped_fiber&& o)
+        : fib(std::move(o.fib))
+        , yield(std::move(o.yield))
+    {}
+
+    ~scoped_fiber()
+    {
+        static_cast<CallableFiber&>(*this)(fib, yield);
+    }
+
+    scoped_fiber& operator=(scoped_fiber&& o)
+    {
+        static_cast<CallableFiber&>(*this)(fib, yield);
+        fib = std::move(o.fib);
+        return *this;
+    }
+
+    bool joinable() const
+    {
+        return fib.joinable();
+    }
+
+    template<class T>
+    void join(const T& this_fiber)
+    {
+        static_assert(
+            std::is_same<
+                T, typename basic_fiber<Strand>::this_fiber
+            >::value,
+            ""
+        );
+        assert(this_fiber.pimpl_ == this->yield.pimpl_);
+        boost::ignore_unused(this_fiber);
+        join();
+    }
+
+    void join()
+    {
+        fib.join(yield);
+    }
+
+    void detach()
+    {
+        fib.detach();
+    }
+
+    void interrupt()
+    {
+        fib.interrupt();
+    }
+
+    bool interruption_caught() const
+    {
+        return fib.interruption_caught();
+    }
+
+private:
+    basic_fiber<Strand> fib;
+    typename basic_fiber<Strand>::this_fiber yield;
 };
 
 template<class T, class Strand = boost::asio::io_context::strand>
@@ -823,77 +999,6 @@ private:
     bool obj;
     typename basic_fiber<Strand>::this_fiber& this_fiber;
 };
-
-namespace detail {
-template<class Strand, class F>
-struct SpawnFunctor
-{
-    using impl = typename basic_fiber<Strand>::impl;
-
-    template<class F2>
-    SpawnFunctor(F2&& f, std::shared_ptr<impl> pimpl)
-        : f(std::forward<F2>(f))
-        , pimpl(std::move(pimpl))
-    {}
-
-    boost::context::fiber operator()(boost::context::fiber&& sink)
-    {
-        pimpl->coro.swap(sink);
-        try {
-            f(typename basic_fiber<Strand>::this_fiber{pimpl});
-        } catch (const fiber_interrupted&) {
-            pimpl->interruption_caught = true;
-        }
-        if (pimpl->joiner_executor) {
-            pimpl->joiner_executor();
-        }
-        return std::move(pimpl->coro);
-    }
-
-    F f;
-    std::shared_ptr<impl> pimpl;
-};
-} // namespace detail
-
-template<class Strand, class F,
-         class StackAllocator = boost::context::default_stack>
-typename std::enable_if<
-    detail::is_strand<Strand>::value, basic_fiber<Strand>>::type
-spawn(Strand executor, F&& f, StackAllocator salloc = StackAllocator())
-{
-    auto pimpl = std::make_shared<typename basic_fiber<Strand>::impl>(executor);
-    pimpl->coro = boost::context::fiber{
-        std::allocator_arg,
-        salloc,
-        detail::SpawnFunctor<Strand, F>{std::forward<F>(f), pimpl}
-    };
-    executor.post([pimpl]() {
-        pimpl->coro = std::move(pimpl->coro).resume();
-    }, std::allocator<void>{});
-
-    executor.on_work_started();
-    return {pimpl};
-}
-
-template<class Strand, class F,
-         class StackAllocator = boost::context::default_stack>
-typename std::enable_if<
-    detail::is_strand<Strand>::value, basic_fiber<Strand>>::type
-spawn(detail::basic_this_fiber<Strand> this_fiber, F &&f,
-      StackAllocator salloc = StackAllocator())
-{
-    return spawn(this_fiber.get_executor(), std::forward<F>(f),
-                 std::move(salloc));
-}
-
-template<class F, class StackAllocator = boost::context::default_stack>
-basic_fiber<boost::asio::io_context::strand>
-spawn(boost::asio::io_context &ctx, F &&f,
-      StackAllocator salloc = StackAllocator())
-{
-    return spawn(boost::asio::io_context::strand{ctx}, std::forward<F>(f),
-                 std::move(salloc));
-}
 
 namespace detail {
 

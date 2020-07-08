@@ -15,7 +15,7 @@ int main()
 {
   asio::io_context ioctx;
 
-  fib::fiber f1 = fib::spawn(
+  fib::fiber f1{
     ioctx,
     [](fib::fiber::this_fiber this_fiber) {
       asio::steady_timer timer{this_fiber.get_executor().context()};
@@ -32,16 +32,16 @@ int main()
       timer.expires_after(chrono::seconds(1));
       timer.async_wait(this_fiber);
     }
-  );
+  };
 
-  fib::spawn(
+  fib::fiber{
     ioctx,
     [&f1](fib::fiber::this_fiber this_fiber) {
       f1.join(this_fiber);
 
       cout << "Hello World" << endl;
     }
-  ).detach();
+  }.detach();
 
   ioctx.run();
 }

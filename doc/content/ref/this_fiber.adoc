@@ -7,7 +7,7 @@ title = "this_fiber"
 class fiber::this_fiber;
 ----
 
-To have access to a `this_fiber` object, just `spawn()` a fiber and an object of
+To have access to a `this_fiber` object, just spawn a fiber and an object of
 this type will be created for you. You can copy and pass it around freely to
 other functions as you wish, but you should only use its methods within the
 fiber context (i.e. within the fiber execution stack) that created it.
@@ -68,8 +68,8 @@ Strand get_executor() const;
 ----
 
 Returns the strand associated with this fiber. You can set the strand associated
-with the fiber by passing the desired strand by the time you call
-`spawn()`. User-code running on this fiber will always be executed through this
+with the fiber by passing the desired strand by the time construct
+`fiber`. User-code running on this fiber will always be executed through this
 strand. Implementation details might or might not move the fiber through
 different strands to perform some synchronization but no user code will be
 called while the fiber is in a foreign strand.

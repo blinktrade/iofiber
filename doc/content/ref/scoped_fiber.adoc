@@ -129,6 +129,37 @@ private:
     basic_fiber<JoineeStrand> fib;
     typename basic_fiber<JoinerStrand>::this_fiber yield;
 };
+
+template<class CallableFiber, class Strand>
+class strict_scoped_fiber<CallableFiber, Strand, Strand>: private CallableFiber
+{
+public:
+    strict_scoped_fiber(
+        basic_fiber<Strand> &&fib,
+        typename basic_fiber<Strand>::this_fiber this_fiber
+    )
+        : fib(std::move(fib))
+        , yield(std::move(this_fiber))
+    {}
+
+    template<class F, class StackAllocator = boost::context::default_stack>
+    strict_scoped_fiber(
+        typename basic_fiber<Strand>::this_fiber this_fiber,
+        F&& f, StackAllocator salloc = StackAllocator()
+    )
+        : fib(this_fiber, std::forward<F>(f), salloc)
+        , yield(std::move(this_fiber))
+    {}
+
+    ~strict_scoped_fiber()
+    {
+        static_cast<CallableFiber&>(*this)(fib, yield);
+    }
+
+private:
+    basic_fiber<Strand> fib;
+    typename basic_fiber<Strand>::this_fiber yield;
+};
 ----
 
 As in Boost.Thread:
@@ -220,6 +251,22 @@ public:
 private:
     basic_fiber<JoineeStrand> fib;
     typename basic_fiber<JoinerStrand>::this_fiber yield;
+};
+
+template<class CallableFiber, class Strand>
+class scoped_fiber<CallableFiber, Strand, Strand>: private CallableFiber
+{
+public:
+    // ... same as above ...
+
+    template<class F, class StackAllocator = boost::context::default_stack>
+    scoped_fiber(
+        typename basic_fiber<Strand>::this_fiber this_fiber,
+        F&& f, StackAllocator salloc = StackAllocator()
+    )
+        : fib(this_fiber, std::forward<F>(f), salloc)
+        , yield(std::move(this_fiber))
+    {}
 };
 ----
 

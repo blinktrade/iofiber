@@ -17,17 +17,16 @@ are:
 
 `trial::iofiber::fiber` is an alias for
 `trial::iofiber::basic_fiber<boost::asio::io_context::strand>`. To spawn a
-fiber, use the function `spawn()` passing a strand `executor` and a fiber
-`start-function`. Fiber will be scheduled through `executor` and use it
-throughout its lifetime and `start-function` will be executed on top of fiber's
-stack:
+fiber, pass a strand `executor` and a fiber `start-function` to `fiber`
+constructor. Fiber will be scheduled through `executor` and use it throughout
+its lifetime and `start-function` will be executed on top of fiber's stack:
 
 [source,cpp]
 ----
 boost::asio::io_context ctx;
 boost::asio::io_context::strand strand{ctx};
 
-spawn(
+fiber(
   strand,
   [](fiber::this_fiber this_fiber) {
     std::cout << "Hello World" << std::endl;
@@ -40,14 +39,14 @@ ctx.run();
 The start-function must have a `fiber::this_fiber` parameter through which it
 can have access to local/private{_}footnote:[API to fiber management which is
 only available from within the fiber itself and not through remote/foreign
-fibers.] functions. There is an overloaded `spawn()` shortcut function to
-instantiate a strand for you:
+fibers.] functions. There is a second constructor to instantiate a strand for
+you:
 
 [source,cpp]
 ----
 boost::asio::io_context ctx;
 
-spawn(
+fiber(
   ctx,
   [](fiber::this_fiber this_fiber) {
     std::cout << "Hello World" << std::endl;
@@ -57,17 +56,17 @@ spawn(
 ctx.run();
 ----
 
-And there is another `spawn()` shortcut function which will reuse the strand
-from the parent fiber:
+And there is a third constructor which will reuse the strand from the parent
+fiber:
 
 [source,cpp]
 ----
 boost::asio::io_context ctx;
 
-spawn(
+fiber(
   ctx,
   [](fiber::this_fiber this_fiber) {
-    spawn(
+    fiber(
       this_fiber,
       [](fiber::this_fiber this_fiber) {
         std::cout << " World" << std::endl;
@@ -81,10 +80,10 @@ spawn(
 ctx.run();
 ----
 
-All `spawn()` overloads return a `fiber` object which you must either `join()`
-or `detach()`. If you don't call any of these functions, ``fiber``'s destructor
-will call `strand.context().stop()` function to stop the application (a less
-severe alternative to `std::terminate()`). You can check whether the application
+All `fiber` objects must be either ``join()``'ed or ``detach()``'ed. If you
+don't call any of these functions, ``fiber``'s destructor will call
+`strand.context().stop()` function to stop the application (a less severe
+alternative to `std::terminate()`). You can check whether the application
 finished normally or abnormally using `trial::iofiber::context_aborted()`.
 
 [NOTE]
@@ -117,7 +116,7 @@ destructor will stop the world if it detects an error in the code logic.
 ----
 boost::asio::io_context ioctx;
 
-auto f1 = spawn(
+fiber f1(
   ioctx,
   [](fib::fiber::this_fiber this_fiber) {
     boost::asio::steady_timer timer{this_fiber.get_executor().context()};
@@ -136,7 +135,7 @@ auto f1 = spawn(
   }
 );
 
-spawn(
+fiber(
   ioctx,
   [&f1](fib::fiber::this_fiber this_fiber) {
     f1.join(this_fiber);

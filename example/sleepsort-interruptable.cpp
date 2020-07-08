@@ -10,7 +10,7 @@ using namespace std;
 fib::fiber sleepsort(asio::io_context& ioctx, std::vector<int> v)
 {
     // The grouping fiber to dispatch multiple interrupt requests
-    return fib::spawn(
+    return {
         ioctx,
         [v = std::move(v)](fib::fiber::this_fiber this_fiber) {
             std::vector<
@@ -20,7 +20,7 @@ fib::fiber sleepsort(asio::io_context& ioctx, std::vector<int> v)
 
             // The sleep-sort algo {{{
             for (auto i: v) {
-                auto f = fib::spawn(
+                fibers.emplace_back(
                     this_fiber,
                     [i](fib::fiber::this_fiber this_fiber) {
                         asio::steady_timer timer{
@@ -31,7 +31,6 @@ fib::fiber sleepsort(asio::io_context& ioctx, std::vector<int> v)
                         cout << i << ' ' << std::flush;
                     }
                 );
-                fibers.push_back({ std::move(f), this_fiber });
             }
             // }}}
 
@@ -39,7 +38,7 @@ fib::fiber sleepsort(asio::io_context& ioctx, std::vector<int> v)
                 f.join(this_fiber);
             }
         }
-    );
+    };
 }
 
 int main()
@@ -51,7 +50,7 @@ int main()
     auto sleeper = sleepsort(ioctx, v);
     asio::io_context::strand sleeper_fib_obj_strand{ioctx};
 
-    auto sigwaiter = fib::spawn(
+    fib::fiber sigwaiter(
         sleeper_fib_obj_strand,
         [&](fib::fiber::this_fiber this_fiber) {
             asio::signal_set sigusr1(ioctx, SIGUSR1);
@@ -60,7 +59,7 @@ int main()
         }
     );
 
-    fib::spawn(
+    fib::fiber(
         sleeper_fib_obj_strand,
         [&](fib::fiber::this_fiber this_fiber) {
             sleeper.join(this_fiber);

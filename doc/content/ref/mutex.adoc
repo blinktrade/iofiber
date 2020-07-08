@@ -102,19 +102,19 @@ using executor_type = Strand;
 
 Post semantics mean that the operation won't start immediately. Instead it'll
 always be scheduled through the underlying execution context. A simple
-illustration of this concept is the `spawn()` function.
+illustration of this concept is the fiber constructor.
 
 [source,cpp]
 ----
 void start(std::vector<int>& coll)
 {
     for (auto e: coll) {
-        spawn([&]() { worker(coll, e); });
+        fiber([&]() { worker(coll, e); }).detach();
     }
 }
 ----
 
-Were the function passed to `spawn()` to execute immediately (dispatch
+Were the function passed to `fiber` constructor to execute immediately (dispatch
 semantics), the iterators involved in the for-loop could be invalidated by some
 of the workers mutating `coll`. So post semantics guarantee a
 “link:https://exploringjs.com/es6/ch_async.html#_run-to-completion-semantics[run-to-completion]”

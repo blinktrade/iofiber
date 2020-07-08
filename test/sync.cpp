@@ -74,9 +74,9 @@ BOOST_AUTO_TEST_CASE(mutex)
         mutex.unlock();
     };
 
-    iofiber::spawn(ios, w1).detach();
-    iofiber::spawn(ios, w2).detach();
-    iofiber::spawn(ios, w3).detach();
+    iofiber::fiber(ios, w1).detach();
+    iofiber::fiber(ios, w2).detach();
+    iofiber::fiber(ios, w3).detach();
 
     output.push_back(-2);
 
@@ -144,9 +144,9 @@ BOOST_AUTO_TEST_CASE(mutex_same_strand)
         mutex.unlock();
     };
 
-    iofiber::spawn(strand, w1).detach();
-    iofiber::spawn(strand, w2).detach();
-    iofiber::spawn(strand, w3).detach();
+    iofiber::fiber(strand, w1).detach();
+    iofiber::fiber(strand, w2).detach();
+    iofiber::fiber(strand, w3).detach();
 
     output.push_back(-2);
 
@@ -196,8 +196,8 @@ BOOST_AUTO_TEST_CASE(condvar)
         output.push_back(203);
     };
 
-    iofiber::spawn(ioc, w1).detach();
-    iofiber::spawn(ioc, w2).detach();
+    iofiber::fiber(ioc, w1).detach();
+    iofiber::fiber(ioc, w2).detach();
 
     ioc.run();
 
@@ -243,8 +243,8 @@ BOOST_AUTO_TEST_CASE(condvar_samestrand)
         output.push_back(203);
     };
 
-    iofiber::spawn(strand, w1).detach();
-    iofiber::spawn(strand, w2).detach();
+    iofiber::fiber(strand, w1).detach();
+    iofiber::fiber(strand, w2).detach();
 
     ioc.run();
 
@@ -294,9 +294,9 @@ BOOST_AUTO_TEST_CASE(condvar_multiple_waiters)
         output.push_back(303);
     };
 
-    iofiber::spawn(ioc, w1).detach();
-    iofiber::spawn(ioc, w2).detach();
-    iofiber::spawn(ioc, w3).detach();
+    iofiber::fiber(ioc, w1).detach();
+    iofiber::fiber(ioc, w2).detach();
+    iofiber::fiber(ioc, w3).detach();
 
     ioc.run();
 
@@ -346,9 +346,9 @@ BOOST_AUTO_TEST_CASE(condvar_multiple_waiters_samestrand)
         output.push_back(303);
     };
 
-    iofiber::spawn(strand, w1).detach();
-    iofiber::spawn(strand, w2).detach();
-    iofiber::spawn(strand, w3).detach();
+    iofiber::fiber(strand, w1).detach();
+    iofiber::fiber(strand, w2).detach();
+    iofiber::fiber(strand, w3).detach();
 
     ioc.run();
 
@@ -385,8 +385,8 @@ BOOST_AUTO_TEST_CASE(condvar_can_lockless_notify_on_same_strand)
         output.push_back(203);
     };
 
-    iofiber::spawn(strand, w1).detach();
-    iofiber::spawn(strand, w2).detach();
+    iofiber::fiber(strand, w1).detach();
+    iofiber::fiber(strand, w2).detach();
 
     ioc.run();
 
@@ -403,7 +403,7 @@ BOOST_AUTO_TEST_CASE(condvar_interrupt)
     iofiber::mutex mutex{strand};
     iofiber::condition_variable cond{strand};
 
-    auto f = iofiber::spawn(ioc, [&](iofiber::fiber::this_fiber this_fiber) {
+    iofiber::fiber f(ioc, [&](iofiber::fiber::this_fiber this_fiber) {
         iofiber::unique_lock lk{mutex, this_fiber};
         try {
             cond.wait(lk, this_fiber);
@@ -422,7 +422,7 @@ BOOST_AUTO_TEST_CASE(condvar_interrupt)
         BOOST_REQUIRE_EQUAL(f.interruption_caught(), true);
     };
 
-    iofiber::spawn(ioc, w2).detach();
+    iofiber::fiber(ioc, w2).detach();
 
     ioc.run();
 
